@@ -1,0 +1,31 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+const links = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/chat", label: "Chat" },
+  { href: "/report", label: "Reporte" },
+  { href: "/login", label: "Entrar" },
+] as const;
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
+        <Link
+          href="/"
+          className="text-lg font-semibold tracking-tight text-primary"
+        >
+          MediCoach
+        </Link>
+        <nav className="flex flex-wrap items-center gap-1 sm:gap-2">
+          {links.map(({ href, label }) => (
+            <Button key={href} variant="ghost" size="sm" asChild>
+              <Link href={href}>{label}</Link>
+            </Button>
+          ))}
+        </nav>
+      </div>
+    </header>
+  );
+}
