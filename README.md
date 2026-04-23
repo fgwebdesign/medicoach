@@ -34,11 +34,34 @@ Las tablas tienen **RLS** activado: el paciente solo accede a sus filas (`patien
 2. Exportá código a tu editor o copiá TSX en `components/` y componé en `app/dashboard`, `app/chat`, `app/report`.
 3. Este repo ya tiene **shadcn** inicializado (`components.json`, Tailwind v4, tokens MediCoach en `app/globals.css`).
 
+## Estructura del repo
+
+| Área | Ruta |
+|------|------|
+| App Router (rutas, layouts) | `app/` |
+| UI genérica (shadcn) | `components/ui/` |
+| Layout compartido (header, shell) | `components/layout/` |
+| UI por feature (chat, dashboard, …) | `components/features/<feature>/` |
+| Dominio MediCoach (agente, RAG, FDA) | `lib/medicoach/` |
+| Integraciones (Supabase, luego otros) | `lib/integrations/` |
+| Supabase browser/server (compat) | `lib/supabase/*` re-exporta `lib/integrations/supabase/*` |
+| Config estática (nav, flags) | `config/` |
+| Tipos TS compartidos | `types/` |
+| Hooks React | `hooks/` |
+| Validación Zod API | `lib/validation/` |
+| Scripts CLI (`tsx`) | `scripts/` |
+
+## Agente y datos
+
+- **Chat:** `POST /api/chat` — `streamText` + tools (`searchMedicalKnowledge`, `getDrugLabel`) + intención heurística con **LangGraph** (`lib/medicoach/agent/graph.ts`).
+- **Ingesta RAG demo:** `npm run ingest:knowledge` (tras `export` de `.env.local` con `OPENAI_API_KEY` y `SUPABASE_SERVICE_ROLE_KEY`).
+- **Migración:** `supabase/migrations/20260424120000_grant_search_medical_knowledge_service_role.sql` — ejecutá `supabase db push` si la RPC falla con service_role.
+
 ## Próximo cableado
 
-- **Agente:** `app/api/chat/route.ts` (LangGraph + Vercel AI SDK + streaming).
-- **Cliente Supabase:** `lib/supabase/client.ts` (browser) y `lib/supabase/server.ts` (Server Components / Route Handlers).
-- **Sesión:** `middleware.ts` refresca cookies de Supabase Auth.
+- **Agente:** ampliar nodos LangGraph (síntomas / medicación / reporte) y herramientas Supabase (registrar síntoma, etc.).
+- **Cliente Supabase:** `lib/integrations/supabase/client.ts` (browser) y `server.ts` (Server Components / Route Handlers); `admin.ts` solo servidor con `SUPABASE_SERVICE_ROLE_KEY`.
+- **Sesión:** `middleware.ts` → `lib/integrations/supabase/middleware.ts`.
 
 ## Deploy
 

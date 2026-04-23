@@ -1,0 +1,11 @@
+meta {
+  name: openFDA Drug Label
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.fda.gov/drug/label.json?search=openfda.generic_name:metformin&limit=1
+  body: none
+  auth: none
+}

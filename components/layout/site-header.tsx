@@ -1,12 +1,6 @@
 import Link from "next/link";
+import { MAIN_NAV } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
-
-const links = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/chat", label: "Chat" },
-  { href: "/report", label: "Reporte" },
-  { href: "/login", label: "Entrar" },
-] as const;
 
 export function SiteHeader() {
   return (
@@ -19,7 +13,7 @@ export function SiteHeader() {
           MediCoach
         </Link>
         <nav className="flex flex-wrap items-center gap-1 sm:gap-2">
-          {links.map(({ href, label }) => (
+          {MAIN_NAV.map(({ href, label }) => (
             <Button key={href} variant="ghost" size="sm" asChild>
               <Link href={href}>{label}</Link>
             </Button>

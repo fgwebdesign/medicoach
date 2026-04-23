@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
