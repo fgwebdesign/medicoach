@@ -18,6 +18,33 @@ import { chatRequestSchema } from "@/lib/validation/chat-request";
 
 export const maxDuration = 60;
 
+/**
+ * `useChat` manda UIMessage con `parts[]`. Bruno/Postman suelen mandar `content` (estilo OpenAI).
+ */
+function normalizeToUiMessages(raw: unknown[]): UIMessage[] {
+  return raw.map((m, i) => {
+    if (!m || typeof m !== "object") {
+      return m as UIMessage;
+    }
+    const o = m as Record<string, unknown>;
+    if (Array.isArray(o.parts)) {
+      return {
+        id: String(o.id ?? `msg-${i}`),
+        role: o.role,
+        parts: o.parts,
+      } as UIMessage;
+    }
+    if (typeof o.content === "string") {
+      return {
+        id: String(o.id ?? `msg-${i}`),
+        role: o.role as UIMessage["role"],
+        parts: [{ type: "text" as const, text: o.content }],
+      } as UIMessage;
+    }
+    return m as UIMessage;
+  });
+}
+
 function lastUserTextFromUi(messages: UIMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
@@ -75,7 +102,7 @@ export async function POST(req: Request) {
   }
 
   const { messages: rawMessages, sessionId } = parsed.data;
-  const messages = rawMessages as UIMessage[];
+  const messages = normalizeToUiMessages(rawMessages);
 
   const supabase = await createClient();
   const {

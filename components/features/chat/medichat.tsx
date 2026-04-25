@@ -16,6 +16,12 @@ import {
   type SpeechRecognitionResultEvent,
 } from "@/lib/client/speech-recognition";
 
+const SUGGESTED_PROMPTS = [
+  "Hoy tomé metformina y tuve mareos leves, ¿puede ser normal?",
+  "Tengo presión alta y a veces me da tos, ¿a qué puede deberse?",
+  "Quiero registrar que tuve cefalea con severidad 4 desde ayer",
+] as const;
+
 function messageText(m: { parts?: { type: string; text?: string }[] }) {
   return (
     m.parts
@@ -126,36 +132,75 @@ export function MediChat() {
   }, []);
 
   return (
-    <Card className="flex min-h-[55vh] flex-col">
-      <CardHeader className="border-b py-3">
+    <Card className="flex min-h-[58vh] flex-col overflow-hidden border-border/60 shadow-md">
+      <CardHeader className="space-y-2 border-b border-border/50 bg-muted/20 py-3 sm:py-4">
         <p className="text-sm text-muted-foreground">
-          MediCoach — fuentes FDA/NIH son referencia US; ante emergencias llamá a
-          servicios locales.
+          Fuentes: principalmente <strong>openFDA</strong> (etiquetas US) y
+          textos de apoyo. <strong>Ante emergencia</strong> (dolor de pecho,
+          falta de aire, desmayo) llamá al servicio de emergencias.
         </p>
         {canDictate ? (
-          <p className="text-xs text-muted-foreground">
-            Dictado con el micrófono (Chrome/Edge): el navegador puede usar su
-            propio servicio en la red para transcribir; MediCoach no recibe audio
-            ni grabaciones.
+          <p className="text-xs text-muted-foreground/90">
+            <strong>Dictado:</strong> Chrome o Edge. El audio lo procesa el
+            navegador; MediCoach no almacena grabaciones.
           </p>
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-2 p-0">
-        <ScrollArea className="min-h-[320px] flex-1 px-4 py-3">
+        <ScrollArea className="min-h-[340px] flex-1 px-4 py-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-6 py-2 text-center">
+              <div className="max-w-md space-y-1">
+                <p className="text-base font-medium text-foreground">
+                  Empezá con un mensaje
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Podés tocar un ejemplo o escribir vos: síntomas, medicación o
+                  dudas generales. Si iniciaste sesión, el asistente puede
+                  registrar en tu historial.
+                </p>
+              </div>
+              <div className="flex w-full max-w-lg flex-col gap-2 sm:items-stretch">
+                <p className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Ideas para probar
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {SUGGESTED_PROMPTS.map((text) => (
+                    <li key={text}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="h-auto w-full justify-start whitespace-normal text-left text-sm font-normal"
+                        onClick={() => {
+                          if (busy) return;
+                          void sendMessage({ text });
+                        }}
+                        disabled={busy}
+                      >
+                        {text}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : null}
           <ul className="flex flex-col gap-3">
             {messages.map((m) => (
               <li
                 key={m.id}
                 className={
                   m.role === "user"
-                    ? "ml-8 rounded-lg bg-primary/10 px-3 py-2 text-sm"
-                    : "mr-8 rounded-lg bg-muted px-3 py-2 text-sm"
+                    ? "ml-0 sm:ml-8 rounded-2xl border border-primary/15 bg-primary/10 px-4 py-3 text-sm shadow-sm"
+                    : "mr-0 sm:mr-8 rounded-2xl border border-border/80 bg-card px-4 py-3 text-sm shadow-sm"
                 }
               >
-                <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {m.role === "user" ? "Vos" : "MediCoach"}
                 </span>
-                <div className="whitespace-pre-wrap">{messageText(m)}</div>
+                <div className="whitespace-pre-wrap leading-relaxed">
+                  {messageText(m)}
+                </div>
               </li>
             ))}
           </ul>
