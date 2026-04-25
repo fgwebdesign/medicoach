@@ -1,1 +1,1 @@
-export { fetchDrugLabelSummary, type DrugLabelSummary } from "./client";
+export { fetchDrugLabelSummary, fetchDrugLabel, type DrugLabelSummary, type DrugLabelDetail } from "./client";

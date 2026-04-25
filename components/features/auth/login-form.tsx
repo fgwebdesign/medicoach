@@ -2,190 +2,299 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, Mail, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/integrations/supabase/client";
-
-function siteOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "")
-  );
-}
-
-async function sendMagicLink(email: string) {
-  const supabase = createClient();
-  const site = siteOrigin();
-  if (!site) {
-    throw new Error("No se pudo resolver el origen del sitio.");
-  }
-  return supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-      emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent("/dashboard")}`,
-    },
-  });
-}
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
 
-  async function submitMagicLink(targetEmail: string) {
-    const trimmed = targetEmail.trim().toLowerCase();
-    if (!trimmed) {
-      toast.error("Ingresá tu email.");
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      toast.error("Ingresá tu email y contraseña.");
       return;
     }
+
     setPending(true);
     try {
-      const { error } = await sendMagicLink(trimmed);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password: trimmedPassword,
+      });
+
       if (error) {
-        toast.error(error.message);
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Email o contraseña incorrectos.");
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
-      setSentTo(trimmed);
-      toast.success("Enlace enviado. Revisá tu correo.");
+
+      toast.success("Ingresando a MediCoach...");
+      // Next.js redirige automáticamente tras auth exitoso con middleware
+      window.location.href = "/dashboard";
     } catch (err) {
-      const dev =
-        typeof process !== "undefined" &&
-        process.env.NODE_ENV === "development";
       const msg =
         err instanceof Error
-          ? dev
-            ? err.message
-            : "No pudimos enviar el enlace. Revisá tu conexión e intentá de nuevo."
-          : "No pudimos enviar el enlace. Intentá de nuevo en unos minutos.";
+          ? err.message
+          : "Error al iniciar sesión. Intentá de nuevo.";
       toast.error(msg);
     } finally {
       setPending(false);
     }
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    await submitMagicLink(email);
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      toast.error("Ingresá tu email y contraseña.");
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setPending(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password: trimmedPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast.error("Este email ya está registrado. Probá iniciar sesión.");
+          setActiveTab("login");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success(
+        "Cuenta creada. Revisá tu email para confirmar tu dirección.",
+      );
+      setEmail("");
+      setPassword("");
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Error al crear la cuenta. Intentá de nuevo.";
+      toast.error(msg);
+    } finally {
+      setPending(false);
+    }
   }
 
-  if (sentTo) {
-    return (
-      <div className="space-y-6">
-        <div
-          className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-5 text-center dark:border-primary/30 dark:bg-primary/10"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-            <Mail className="size-6" aria-hidden />
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={(v) => setActiveTab(v as "login" | "signup")}
+      className="w-full"
+    >
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
+        <TabsTrigger value="signup">Crear cuenta</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="login" className="space-y-5 pt-2">
+        <form onSubmit={handleLogin} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="login-email" className="text-sm font-medium leading-none">
+              Correo electrónico
+            </label>
+            <div className="relative">
+              <Mail
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                id="login-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nombre@ejemplo.com"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                disabled={pending}
+                required
+                className="h-11 pl-9"
+              />
+            </div>
           </div>
-          <p className="font-heading text-lg font-semibold tracking-tight">
-            Revisá tu bandeja
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enviamos un enlace a{" "}
-            <span className="font-medium text-foreground">{sentTo}</span>.
-            Al abrirlo vas a entrar a MediCoach; podés cerrar esta pestaña.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+
+          <div className="space-y-2">
+            <label htmlFor="login-password" className="text-sm font-medium leading-none">
+              Contraseña
+            </label>
+            <div className="relative">
+              <Lock
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                id="login-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Tu contraseña"
+                autoComplete="current-password"
+                disabled={pending}
+                required
+                className="h-11 pl-9 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                disabled={pending}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" aria-hidden />
+                ) : (
+                  <Eye className="size-4" aria-hidden />
+                )}
+              </button>
+            </div>
+          </div>
+
           <Button
-            type="button"
-            variant="outline"
-            className="w-full sm:w-auto"
+            className="h-11 w-full gap-2 text-base"
+            type="submit"
             disabled={pending}
-            onClick={() => void submitMagicLink(sentTo)}
           >
             {pending ? (
               <>
                 <Loader2 className="size-4 animate-spin" aria-hidden />
-                Reenviando…
+                Ingresando…
               </>
             ) : (
-              "Reenviar enlace"
+              "Ingresar"
             )}
           </Button>
+        </form>
+      </TabsContent>
+
+      <TabsContent value="signup" className="space-y-5 pt-2">
+        <form onSubmit={handleSignup} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="signup-email" className="text-sm font-medium leading-none">
+              Correo electrónico
+            </label>
+            <div className="relative">
+              <Mail
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                id="signup-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nombre@ejemplo.com"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                disabled={pending}
+                required
+                className="h-11 pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="signup-password" className="text-sm font-medium leading-none">
+              Contraseña
+            </label>
+            <div className="relative">
+              <Lock
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                id="signup-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                autoComplete="new-password"
+                disabled={pending}
+                required
+                className="h-11 pl-9 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                disabled={pending}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" aria-hidden />
+                ) : (
+                  <Eye className="size-4" aria-hidden />
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Al crear tu cuenta aceptás que tus datos se asocien a tu perfil de
+              paciente.
+            </p>
+          </div>
+
           <Button
-            type="button"
-            variant="ghost"
-            className="w-full sm:w-auto"
+            className="h-11 w-full gap-2 text-base"
+            type="submit"
             disabled={pending}
-            onClick={() => {
-              setSentTo(null);
-              setEmail(sentTo);
-            }}
           >
-            Usar otro email
+            {pending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Creando cuenta…
+              </>
+            ) : (
+              "Crear cuenta"
+            )}
           </Button>
-        </div>
-        <Button variant="ghost" className="w-full" type="button" asChild>
+        </form>
+      </TabsContent>
+
+      <div className="mt-4 text-center">
+        <Button variant="ghost" className="h-auto text-sm" type="button" asChild>
           <Link href="/">Volver al inicio</Link>
         </Button>
       </div>
-    );
-  }
-
-  return (
-    <form className="space-y-5" onSubmit={onSubmit} noValidate>
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary" className="font-normal">
-          <Sparkles className="size-3" aria-hidden />
-          Sin contraseña
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          Un solo clic desde tu email
-        </span>
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium leading-none">
-          Correo electrónico
-        </label>
-        <div className="relative">
-          <Mail
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="nombre@ejemplo.com"
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            disabled={pending}
-            required
-            className="h-11 pl-9"
-          />
-        </div>
-        <p id="email-hint" className="text-xs text-muted-foreground">
-          La primera vez que entrás creamos tu cuenta automáticamente. Tus datos
-          quedan asociados solo a vos.
-        </p>
-      </div>
-      <Button className="h-11 w-full gap-2 text-base" type="submit" disabled={pending}>
-        {pending ? (
-          <>
-            <Loader2 className="size-4 animate-spin" aria-hidden />
-            Enviando enlace…
-          </>
-        ) : (
-          <>
-            <Mail className="size-4" aria-hidden />
-            Enviar enlace mágico
-          </>
-        )}
-      </Button>
-      <Button variant="ghost" className="w-full" type="button" asChild>
-        <Link href="/">Volver al inicio</Link>
-      </Button>
-    </form>
+    </Tabs>
   );
 }

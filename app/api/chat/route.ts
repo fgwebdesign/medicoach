@@ -7,8 +7,8 @@ import {
 import { aiGatewayEnabled } from "@/lib/medicoach/ai/env";
 import { resolveChatModel } from "@/lib/medicoach/ai/models";
 import { createMediCoachTools } from "@/lib/medicoach/agent/chat-tools";
-import { runIntentGraph } from "@/lib/medicoach/agent/graph";
 import { MEDICOACH_SYSTEM_PROMPT } from "@/lib/medicoach/agent/prompts";
+import { detectPatterns } from "@/lib/medicoach/patterns";
 import { createClient } from "@/lib/integrations/supabase/server";
 import {
   persistChatTurn,
@@ -48,22 +48,12 @@ export async function POST(req: Request) {
   const anthropicKey = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 
   const canChat = gateway || anthropicKey || openaiKey;
-  const canEmbed = gateway || openaiKey;
 
   if (!canChat) {
     return Response.json(
       {
         error:
           "Configurá Vercel AI Gateway, ANTHROPIC_API_KEY o OPENAI_API_KEY para el modelo de chat.",
-      },
-      { status: 503 },
-    );
-  }
-  if (!canEmbed) {
-    return Response.json(
-      {
-        error:
-          "Hace falta OPENAI_API_KEY para embeddings (o activá AI Gateway, que incluye embeddings).",
       },
       { status: 503 },
     );
@@ -87,33 +77,49 @@ export async function POST(req: Request) {
   const { messages: rawMessages, sessionId } = parsed.data;
   const messages = rawMessages as UIMessage[];
 
-  let modelMessages;
-  const tools = createMediCoachTools();
-  try {
-    modelMessages = await convertToModelMessages(messages, { tools });
-  } catch (e) {
-    return Response.json(
-      { error: "No se pudo convertir el historial de mensajes", detail: String(e) },
-      { status: 400 },
-    );
-  }
-
-  const lastUserText = lastUserTextFromUi(messages);
-  const { intent } = await runIntentGraph(lastUserText || "hola");
-
-  const systemAugmented = `${MEDICOACH_SYSTEM_PROMPT}
-
-Contexto (EE.UU. / FDA): las fuentes de medicamentos pueden ser etiquetas FDA; no sustituyen al médico ni al prospecto local.
-Intención detectada (heurística): "${intent}".`;
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Detección de patrones inyectada al system prompt como contexto extra
+  let patternContext = "";
+  if (user?.id) {
+    try {
+      const patterns = await detectPatterns(user.id);
+      if (patterns.length > 0) {
+        patternContext =
+          `\n\nALERTAS DETECTADAS EN ESTE PACIENTE:\n` +
+          patterns
+            .map(
+              (p) =>
+                `- "${p.sintoma}" reportado ${p.count} veces en últimos 5 días (severidad promedio ${p.severidadPromedio.toFixed(1)})`,
+            )
+            .join("\n") +
+          `\nMencioná estas alertas naturalmente en tu respuesta si son relevantes.`;
+      }
+    } catch (err) {
+      console.error("[chat] detectPatterns error:", err);
+    }
+  }
+
+  const tools = createMediCoachTools({ patientId: user?.id });
+  let modelMessages;
+  try {
+    modelMessages = await convertToModelMessages(messages, { tools });
+  } catch (e) {
+    return Response.json(
+      {
+        error: "No se pudo convertir el historial de mensajes",
+        detail: String(e),
+      },
+      { status: 400 },
+    );
+  }
+
   const result = streamText({
     model: resolveChatModel(),
-    system: systemAugmented,
+    system: MEDICOACH_SYSTEM_PROMPT + patternContext,
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(8),

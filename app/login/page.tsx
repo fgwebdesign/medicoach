@@ -44,9 +44,9 @@ export default async function LoginPage({ searchParams }: Props) {
               Tu seguimiento clínico, con calma
             </h1>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Accedé con un enlace seguro en tu correo. Sin contraseñas que
-              recordar: pensado para quien hace seguimiento de su salud día a
-              día.
+              Accedé con tu email y contraseña. Tus datos quedan seguros y solo
+              vos los podés ver: pensado para quien hace seguimiento de su salud
+              día a día.
             </p>
           </div>
           <ul className="relative z-10 mt-12 space-y-4 text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export default async function LoginPage({ searchParams }: Props) {
                 Entrá con tu email
               </p>
               <p className="text-sm text-muted-foreground">
-                Te enviamos un enlace seguro para entrar sin contraseña.
+                Ingresá o creá tu cuenta para empezar.
               </p>
             </div>
 
@@ -99,9 +99,8 @@ export default async function LoginPage({ searchParams }: Props) {
                   Entrar a MediCoach
                 </CardTitle>
                 <CardDescription className="text-pretty text-sm leading-relaxed">
-                  Usá el mismo correo en el celular o computadora donde vas a
-                  abrir el enlace. Si es tu primera vez, te damos de alta al
-                  confirmar el email.
+                  Si es tu primera vez, creá tu cuenta en la pestaña "Crear
+                  cuenta". Ya tenés usuario? Usá "Iniciar sesión".
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

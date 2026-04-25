@@ -1,0 +1,247 @@
+[
+  {
+    "id": "metformina-efectos-comunes",
+    "drug": "Metformina",
+    "topic": "efectos adversos comunes",
+    "content": "La metformina puede causar náuseas, diarrea, dolor abdominal, sabor metálico y mareos leves, especialmente al inicio del tratamiento. Estos efectos suelen disminuir con el tiempo. Tomarla con las comidas reduce las molestias gastrointestinales.",
+    "source": "MedlinePlus / FDA"
+  },
+  {
+    "id": "metformina-mareos",
+    "drug": "Metformina",
+    "topic": "mareos",
+    "content": "Los mareos leves después de tomar metformina son comunes y suelen estar relacionados con el descenso de la glucosa. Si los mareos son intensos, persisten más de unos minutos, o vienen acompañados de sudoración fría o confusión, podría ser hipoglucemia y se debe consultar al médico.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "metformina-cuando-consultar",
+    "drug": "Metformina",
+    "topic": "cuándo consultar al médico",
+    "content": "Consultar urgente si aparece debilidad muscular intensa, dificultad para respirar, dolor abdominal severo, latidos cardíacos lentos o irregulares — pueden ser signos de acidosis láctica, una complicación rara pero grave.",
+    "source": "FDA Drug Label"
+  },
+  {
+    "id": "metformina-adherencia",
+    "drug": "Metformina",
+    "topic": "adherencia al tratamiento",
+    "content": "La metformina es más efectiva cuando se toma regularmente, a la misma hora cada día. Saltear dosis frecuentemente disminuye su efectividad para controlar la glucemia. Si se olvida una dosis, tomarla apenas se acuerde, salvo que esté cerca de la siguiente.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "enalapril-efectos-comunes",
+    "drug": "Enalapril",
+    "topic": "efectos adversos comunes",
+    "content": "Los efectos más comunes del enalapril son tos seca persistente, mareos al levantarse (hipotensión postural), dolor de cabeza y fatiga. La tos puede aparecer semanas después de iniciar el tratamiento.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "enalapril-tos",
+    "drug": "Enalapril",
+    "topic": "tos seca",
+    "content": "La tos seca es un efecto adverso conocido de los IECA como el enalapril. Si es muy molesta, comentar con el médico — existen alternativas como los ARA II (losartán, valsartán) que no producen tos.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "enalapril-emergencia",
+    "drug": "Enalapril",
+    "topic": "emergencia",
+    "content": "Buscar atención médica de inmediato si aparece hinchazón de labios, lengua o garganta, dificultad para respirar o tragar — puede ser angioedema, una reacción alérgica grave que requiere atención inmediata.",
+    "source": "FDA"
+  },
+  {
+    "id": "enalapril-hipotension",
+    "drug": "Enalapril",
+    "topic": "hipotensión postural",
+    "content": "El enalapril puede causar mareos al levantarse bruscamente (hipotensión postural). Para minimizar esto: levantarse despacio de la cama o silla, sentarse primero unos segundos, y mantenerse bien hidratado.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "losartan-efectos-comunes",
+    "drug": "Losartán",
+    "topic": "efectos adversos comunes",
+    "content": "Los efectos más frecuentes son mareos, fatiga, congestión nasal y dolor de espalda. A diferencia del enalapril, el losartán raramente causa tos.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "losartan-potasio",
+    "drug": "Losartán",
+    "topic": "niveles de potasio",
+    "content": "El losartán puede aumentar los niveles de potasio en sangre. Evitar suplementos de potasio o sustitutos de la sal que lo contengan, salvo indicación médica. El médico puede solicitar análisis periódicos.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "atorvastatina-efectos-comunes",
+    "drug": "Atorvastatina",
+    "topic": "efectos adversos comunes",
+    "content": "La atorvastatina puede causar dolor muscular leve, dolor de cabeza, náuseas y trastornos del sueño. La mayoría de las personas la tolera bien.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "atorvastatina-dolor-muscular",
+    "drug": "Atorvastatina",
+    "topic": "dolor muscular",
+    "content": "El dolor muscular leve es común con las estatinas. Si el dolor es intenso, los músculos se sienten débiles, o aparece orina oscura, consultar al médico de inmediato — puede ser rabdomiólisis, complicación rara pero grave.",
+    "source": "FDA"
+  },
+  {
+    "id": "atorvastatina-cuando-tomar",
+    "drug": "Atorvastatina",
+    "topic": "horario de administración",
+    "content": "La atorvastatina puede tomarse en cualquier momento del día, con o sin comida. Lo importante es tomarla a la misma hora todos los días para mantener niveles estables.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "glibenclamida-efectos-comunes",
+    "drug": "Glibenclamida",
+    "topic": "efectos adversos comunes",
+    "content": "El efecto adverso más importante de la glibenclamida es la hipoglucemia (bajada de azúcar). Síntomas: temblor, sudoración fría, mareos, hambre intensa, confusión. Tener siempre azúcar o caramelos a mano.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "glibenclamida-hipoglucemia",
+    "drug": "Glibenclamida",
+    "topic": "prevención de hipoglucemia",
+    "content": "Para prevenir hipoglucemias: comer regularmente sin saltear comidas, tomar la glibenclamida 30 minutos antes de comer, no aumentar la actividad física sin ajustar la alimentación, y evitar alcohol con el estómago vacío.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "hidroclorotiazida-efectos",
+    "drug": "Hidroclorotiazida",
+    "topic": "efectos adversos comunes",
+    "content": "La hidroclorotiazida es un diurético que puede causar aumento de la frecuencia urinaria, mareos al levantarse, calambres musculares y debilidad. Puede afectar los niveles de potasio en sangre.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "hidroclorotiazida-deshidratacion",
+    "drug": "Hidroclorotiazida",
+    "topic": "hidratación",
+    "content": "Debido a que es un diurético, es importante mantenerse bien hidratado, especialmente en climas cálidos o al hacer ejercicio. Consultar al médico si aparece sed excesiva, boca seca o poca producción de orina.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "amlodipino-efectos",
+    "drug": "Amlodipino",
+    "topic": "efectos adversos comunes",
+    "content": "El amlodipino frecuentemente causa hinchazón de tobillos y pies (edema), enrojecimiento facial, dolor de cabeza y palpitaciones. La hinchazón suele ser más notoria al final del día.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "amlodipino-edema",
+    "drug": "Amlodipino",
+    "topic": "hinchazón de tobillos",
+    "content": "La hinchazón de tobillos por amlodipino es común y no siempre requiere suspender el medicamento. Elevar las piernas al descansar y usar medias de compresión puede ayudar. Consultar al médico si la hinchazón es severa o se acompaña de dificultad respiratoria.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "simvastatina-efectos",
+    "drug": "Simvastatina",
+    "topic": "efectos adversos comunes",
+    "content": "Similar a la atorvastatina: dolor muscular, dolor de cabeza, problemas digestivos. Se recomienda tomarla por la noche porque el colesterol se produce principalmente durante el sueño.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "aspirina-baja-efectos",
+    "drug": "Aspirina",
+    "topic": "efectos adversos comunes",
+    "content": "La aspirina en dosis bajas (cardioprotectora) puede causar irritación gástrica, acidez y aumentar el riesgo de sangrado. Consultar antes de procedimientos dentales o cirugías.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "aspirina-sangrado",
+    "drug": "Aspirina",
+    "topic": "riesgo de sangrado",
+    "content": "La aspirina dificulta la coagulación. Avisar al médico antes de cirugías, extracciones dentales o si aparecen sangrados anormales (encías, nariz, orina oscura, heces negras). No combinar con antiinflamatorios sin consultar.",
+    "source": "FDA"
+  },
+  {
+    "id": "omeprazol-efectos",
+    "drug": "Omeprazol",
+    "topic": "efectos adversos comunes",
+    "content": "El omeprazol puede causar dolor de cabeza, diarrea, dolor abdominal y náuseas. El uso prolongado puede afectar la absorción de vitamina B12 y magnesio.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "omeprazol-uso-prolongado",
+    "drug": "Omeprazol",
+    "topic": "uso a largo plazo",
+    "content": "El uso prolongado de omeprazol (más de 1 año) puede requerir monitoreo de vitamina B12 y magnesio. Si es posible, usar la dosis más baja efectiva por el menor tiempo necesario, según indicación médica.",
+    "source": "FDA"
+  },
+  {
+    "id": "interaccion-metformina-alcohol",
+    "drug": "Metformina",
+    "topic": "interacciones",
+    "content": "Evitar el consumo excesivo de alcohol con metformina — aumenta el riesgo de acidosis láctica. El consumo moderado ocasional con comida suele ser tolerado, pero consultar con el médico.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "interaccion-enalapril-potasio",
+    "drug": "Enalapril",
+    "topic": "interacciones",
+    "content": "Enalapril puede aumentar los niveles de potasio. Evitar suplementos de potasio o sustitutos de la sal que lo contengan, salvo indicación médica. Los análisis regulares monitorean los niveles.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "interaccion-estatinas-pomelo",
+    "drug": "Atorvastatina",
+    "topic": "interacciones",
+    "content": "El jugo de pomelo (toronja) puede aumentar los niveles de atorvastatina en sangre y el riesgo de efectos adversos. Evitar consumir pomelo o su jugo mientras se toma atorvastatina.",
+    "source": "FDA"
+  },
+  {
+    "id": "diabetes-control-glucemia",
+    "drug": "general",
+    "topic": "diabetes — control",
+    "content": "Para personas con diabetes tipo 2, el control adecuado incluye: medir glucemia según indicación médica, mantener actividad física regular, alimentación balanceada baja en azúcares simples, y adherencia estricta a la medicación.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "diabetes-hipoglucemia-sintomas",
+    "drug": "general",
+    "topic": "diabetes — hipoglucemia",
+    "content": "Síntomas de hipoglucemia: temblor, sudoración fría, mareos, hambre súbita, confusión, palpitaciones, irritabilidad. Ante estos síntomas, consumir 15g de carbohidratos de rápida absorción (3 caramelos, medio vaso de jugo, 3 cucharaditas de azúcar) y medir glucemia a los 15 minutos.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "hipertension-control",
+    "drug": "general",
+    "topic": "hipertensión — control",
+    "content": "Para hipertensión: medir presión arterial regularmente, reducir consumo de sal, mantener peso saludable, hacer ejercicio aeróbico regular, limitar alcohol, no fumar, y tomar la medicación todos los días aunque uno se sienta bien.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "hipertension-sal",
+    "drug": "general",
+    "topic": "hipertensión — dieta baja en sal",
+    "content": "Reducir la sal ayuda a controlar la presión: evitar agregado en la mesa, leer etiquetas de alimentos procesados, preferir alimentos frescos, usar especias y hierbas para dar sabor. Meta: menos de 2300mg de sodio por día (1 cucharadita de sal).",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "actividad-fisica-crónicos",
+    "drug": "general",
+    "topic": "actividad física",
+    "content": "La actividad física regular mejora el control de diabetes e hipertensión: caminar 30 minutos diarios, 5 días a la semana es un buen objetivo. Empezar gradualmente y consultar al médico antes de iniciar un programa de ejercicio intenso.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "adherencia-medicacion",
+    "drug": "general",
+    "topic": "adherencia al tratamiento",
+    "content": "La adherencia al tratamiento es clave: tomar los medicamentos todos los días, a la misma hora, aunque uno se sienta bien. Usar recordatorios, pastilleros semanales, o apps puede ayudar. No suspender sin consultar al médico.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "emergencia-cardiaca",
+    "drug": "general",
+    "topic": "emergencia",
+    "content": "Llamar a emergencias (105 en Uruguay, 911 en otros países) inmediatamente ante: dolor de pecho intenso o opresivo, dificultad respiratoria severa, debilidad o adormecimiento de un lado del cuerpo, dificultad para hablar, pérdida de conciencia, o convulsiones.",
+    "source": "MedlinePlus"
+  },
+  {
+    "id": "control-medico-regular",
+    "drug": "general",
+    "topic": "seguimiento médico",
+    "content": "Las consultas médicas regulares son esenciales para ajustar tratamientos, monitorear análisis (glucemia, HbA1c, función renal, perfil lipídico) y detectar complicaciones temprano. No faltar a los controles programados.",
+    "source": "MedlinePlus"
+  }
+]

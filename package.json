@@ -7,16 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "ingest:knowledge": "tsx scripts/ingest-knowledge.ts",
-    "fetch:knowledge:fda": "tsx scripts/fetch-openfda-knowledge.ts",
     "docs:pdf": "tsx scripts/gen-pdf-resumen.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/react": "^3.0.170",
-    "@langchain/core": "^1.1.41",
-    "@langchain/langgraph": "^1.2.9",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "@teispace/next-themes": "^0.2.0",
