@@ -106,14 +106,14 @@ const MessageBubble = memo(function MessageBubble({
           <Stethoscope className="size-4" strokeWidth={2} aria-hidden />
         )}
       </div>
-      <div
+        <div
         className={cn(
-          "min-w-0 max-w-[min(100%,30rem)] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "border border-border/50 bg-card text-foreground",
+            "min-w-0 max-w-[min(100%,30rem)] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm",
+            isUser
+            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+            : "border border-border/60 bg-gradient-to-b from-card to-muted/20 text-foreground dark:border-white/10 dark:from-card/80 dark:to-card/50",
         )}
-      >
+        >
         <div className="whitespace-pre-wrap break-words">{text}</div>
       </div>
     </li>
@@ -422,8 +422,10 @@ function MediChatBody() {
 
   return (
     <>
-    <div className="flex min-h-[min(72dvh,760px)] flex-col overflow-hidden rounded-2xl border border-border/40 bg-card shadow-md ring-1 ring-black/5 dark:ring-white/10">
-      <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-gradient-to-r from-background via-primary/[0.04] to-background px-3 py-3 sm:px-4">
+    <div
+      className="flex h-full w-full min-h-[min(56dvh,520px)] flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-md ring-1 ring-black/5 dark:border-white/10 dark:bg-card/90 dark:ring-white/5 lg:min-h-0"
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-gradient-to-r from-background/95 via-primary/[0.05] to-background/95 px-3 py-3 backdrop-blur-sm sm:px-4 dark:via-primary/10">
         <div className="flex min-w-0 items-center gap-2.5">
           <div
             className="hidden h-2 w-2 shrink-0 rounded-full bg-primary shadow-[0_0_0_3px] shadow-primary/20 sm:block"
@@ -479,11 +481,11 @@ function MediChatBody() {
       <div className="flex min-h-0 flex-1 flex-col">
         <ScrollArea className="min-h-[300px] flex-1 px-3 py-3 sm:min-h-[380px] sm:px-5 sm:py-5">
           {messages.length === 0 ? (
-            <div className="mx-auto flex max-w-xl flex-col items-center gap-5 py-2 text-center sm:py-4">
-              <p className="font-heading text-lg font-semibold text-foreground sm:text-xl">
+            <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-5 px-0.5 py-2 sm:px-0 sm:py-4">
+              <p className="w-full text-center font-heading text-lg font-semibold text-foreground sm:text-xl">
                 {t("chat.howTodayTitle")}
               </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <p className="w-full text-center text-sm leading-relaxed text-muted-foreground">
                 {t("chat.howTodaySubtitle")}
               </p>
               <div className="w-full space-y-2.5 text-left">
@@ -496,7 +498,7 @@ function MediChatBody() {
                       <Button
                         type="button"
                         variant="secondary"
-                        className="h-auto w-full justify-start rounded-xl border border-border/50 bg-background/90 py-2.5 text-left text-sm font-normal leading-snug text-foreground shadow-none transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:shadow-sm"
+                        className="h-auto min-h-0 w-full min-w-0 max-w-full shrink items-start justify-start gap-0 !whitespace-normal rounded-xl border border-border/50 bg-background/90 px-3.5 py-2.5 text-left text-sm font-normal leading-relaxed break-words text-foreground text-balance shadow-none transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:shadow-sm"
                         onClick={() => {
                           if (busy || !sessionBoot) return;
                           void sendMessage({ text });
@@ -534,7 +536,7 @@ function MediChatBody() {
         ) : null}
       </div>
 
-      <div className="shrink-0 border-t border-border/50 bg-gradient-to-b from-background to-muted/20 p-3 sm:p-4">
+      <div className="shrink-0 border-t border-border/50 bg-gradient-to-b from-background/80 to-muted/20 p-3 backdrop-blur-sm sm:p-4 dark:from-card/30 dark:to-background/30">
         <form
           className="mx-auto flex w-full max-w-2xl flex-col gap-3"
           onSubmit={(e) => {
@@ -644,7 +646,7 @@ function MediChatLoadingShell() {
   const { t } = useLocale();
   return (
     <div
-      className="flex min-h-[min(72dvh,760px)] flex-col items-center justify-center overflow-hidden rounded-2xl border border-border/40 bg-card px-4 py-12 text-sm text-muted-foreground shadow-md ring-1 ring-black/5 dark:ring-white/10"
+      className="flex h-full w-full min-h-[min(56dvh,520px)] flex-col items-center justify-center overflow-hidden rounded-2xl border border-border/50 bg-card px-4 py-12 text-sm text-muted-foreground shadow-md ring-1 ring-black/5 dark:border-white/10 dark:bg-card/80 dark:ring-white/5 lg:min-h-0"
       role="status"
       aria-live="polite"
     >

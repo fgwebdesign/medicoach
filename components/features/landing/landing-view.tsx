@@ -125,17 +125,13 @@ export function LandingView() {
       };
 
   return (
-    <main className="flex flex-1 flex-col">
+    <div className="relative z-10 flex flex-1 flex-col">
       <section
-        className="relative flex min-h-[min(90svh,920px)] flex-col overflow-hidden border-b border-border/60"
+        className="font-sans relative flex min-h-[min(100svh,960px)] flex-col justify-center overflow-hidden border-b border-border/60"
         aria-labelledby="hero-title"
       >
-        <motion.div
-          className="absolute inset-0 h-full w-full"
-          initial={reduce ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: reduce ? 0 : 1.1, ease: "easeOut" }}
-        >
+        {/* Video: fondo a todo el ancho del hero */}
+        <div className="absolute inset-0" aria-hidden>
           <video
             className="h-full w-full object-cover"
             autoPlay
@@ -143,89 +139,116 @@ export function LandingView() {
             muted
             playsInline
             tabIndex={-1}
-            aria-hidden
             preload="auto"
             src="/hero.mp4"
+            aria-hidden
           />
-        </motion.div>
+        </div>
+
+        {/* Overlay verde bosque + leve viñeta para legibilidad */}
         <div
-          className="pointer-events-none absolute inset-0 bg-black/45"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#043028]/[0.88] via-[#0a3d32]/[0.82] to-[#021612]/[0.9]"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-black/20 to-black/80"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_20%_0%,oklch(0.42_0.1_175/0.22),transparent_55%)]"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/25 to-black/5 sm:from-black/70"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-black/25"
           aria-hidden
         />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col justify-end px-4 pb-20 pt-28 sm:max-w-2xl sm:pb-28 sm:pt-32">
+        <div
+          className="relative z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 pb-12 pt-[6vh] sm:px-6 sm:pb-16 sm:pt-[7vh] lg:px-10"
+        >
           <motion.div
-            className="space-y-5 text-white"
+            className="mx-auto flex w-full max-w-2xl flex-col items-center gap-9 sm:gap-10"
             initial="hidden"
             animate="show"
             variants={heroStagger}
           >
-            <motion.p
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/90"
-              variants={heroChild}
-            >
-              Acompañamiento en salud
-            </motion.p>
-            <motion.h1
-              id="hero-title"
-              className="font-heading text-balance text-4xl font-bold tracking-tight sm:text-5xl sm:leading-[1.05]"
-              variants={heroChild}
-            >
-              MediCoach, tu acompañante
-            </motion.h1>
-            <motion.p
-              className="text-pretty text-lg text-white/90 sm:text-xl"
-              variants={heroChild}
-            >
-              Ordená dudas, síntomas y la rutina — con voz clara y siempre
-              al lado de tu médico, nunca en su lugar.
-            </motion.p>
             <motion.div
-              className="flex flex-col gap-3 sm:flex-row sm:items-center"
+              className="w-full text-center text-white"
               variants={heroChild}
             >
-              <Button
-                asChild
-                size="lg"
-                className="h-12 gap-2 border-0 bg-primary px-7 text-base text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90"
+              <p className="font-heading text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-primary/95">
+                Acompañamiento en salud
+              </p>
+              <h1
+                id="hero-title"
+                className="mt-3 w-full text-balance"
               >
-                <Link href="/chat">
-                  Ir al chat
-                  <MessageCircle className="size-5" aria-hidden />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-12 gap-2 border-white/40 bg-white/10 px-7 text-base text-white backdrop-blur-sm hover:bg-white/15"
-              >
-                <Link href="/login">
-                  Entrar
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-              </Button>
+                <span className="block text-base font-medium leading-snug text-white/90 sm:text-lg">
+                  Entre un turno y el otro
+                </span>
+                <span className="font-hero-serif mt-2 block text-4xl font-medium italic leading-[1.08] text-primary sm:mt-3 sm:text-5xl sm:leading-[1.06] lg:text-6xl">
+                  con voz clara.
+                </span>
+                <span className="font-heading mt-2 block text-2xl font-bold tracking-tight text-white sm:mt-3 sm:text-3xl lg:text-4xl">
+                  MediCoach
+                </span>
+              </h1>
+              <p className="mt-4 text-pretty text-sm font-normal leading-relaxed text-white/75 sm:text-base">
+                Dudas y rutina, en lenguaje humano. Siempre con tu médico, no
+                en su lugar.
+              </p>
+              <p className="font-heading mt-5 text-xs font-medium uppercase tracking-[0.2em] text-white/50">
+                Acompañamiento en vivo
+              </p>
             </motion.div>
-            <motion.p
-              className="text-sm text-white/60"
+
+            <motion.div
+              className="w-full max-w-md"
               variants={heroChild}
             >
-              Informativo · Cuenta gratuita
-            </motion.p>
+              <div
+                className="rounded-[1.75rem] border border-white/20 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-2xl sm:p-7"
+                style={{
+                  background:
+                    "linear-gradient(160deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%)",
+                }}
+              >
+                <p className="font-heading text-sm font-medium text-white/95 sm:text-base">
+                  Empezá hoy: chat seguro, historial y reporte para el
+                  consultorio.
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-white/60">
+                  Con tu cuenta guardás el historial y generás un resumen
+                  compartible.
+                </p>
+                <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:items-stretch sm:gap-2">
+                  <Button
+                    asChild
+                    className="h-12 w-full min-w-0 flex-1 gap-2 rounded-full border-0 bg-primary text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 sm:h-12 sm:text-base"
+                  >
+                    <Link href="/chat">
+                      Ir al chat
+                      <MessageCircle className="size-4" aria-hidden />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-12 w-full min-w-0 flex-1 gap-2 rounded-full border border-white/35 bg-white/[0.04] text-sm text-white backdrop-blur-sm hover:bg-white/10 sm:h-12 sm:text-base"
+                  >
+                    <Link href="/login">
+                      Entrar
+                      <ArrowRight className="size-4" aria-hidden />
+                    </Link>
+                  </Button>
+                </div>
+                <p className="mt-4 text-center text-[0.7rem] text-white/45">
+                  Educativo · Cuenta gratis
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
       <section
-        className="border-b border-border/50 bg-muted/15 py-12 sm:py-16"
+        className="border-b border-border/40 bg-gradient-to-b from-background to-muted/30 py-12 dark:from-[#0a0f0d] dark:to-[#040807] sm:py-16"
         aria-labelledby="quick-title"
       >
         <div className="mx-auto w-full max-w-6xl px-4">
@@ -254,7 +277,7 @@ export function LandingView() {
             <motion.div variants={itemVariant(reduce, 20)} className="h-full">
               <Link
                 href="/chat"
-                className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:bg-card/90 dark:ring-white/5"
+                className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:ring-white/5 dark:backdrop-blur-sm dark:hover:border-primary/35"
               >
                 <div className="space-y-2">
                   <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -276,7 +299,7 @@ export function LandingView() {
             <motion.div variants={itemVariant(reduce, 20)} className="h-full">
               <Link
                 href="/dashboard"
-                className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:bg-card/90 dark:ring-white/5"
+                className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:ring-white/5 dark:backdrop-blur-sm dark:hover:border-primary/35"
               >
                 <div className="space-y-2">
                   <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -303,7 +326,7 @@ export function LandingView() {
                 className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/15 via-transparent to-primary/5 opacity-80 dark:from-primary/20"
                 aria-hidden
               />
-              <Card className="relative border-border/80 bg-card/95 shadow-md backdrop-blur-sm dark:bg-card/90">
+              <Card className="relative border-border/80 bg-card/95 shadow-md backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
                 <CardHeader className="space-y-4 p-5 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex items-center gap-3 text-primary">
@@ -342,7 +365,7 @@ export function LandingView() {
       </section>
 
       <section
-        className="border-b border-border/50 bg-muted/20 py-16 sm:py-20"
+        className="border-b border-border/40 bg-gradient-to-b from-muted/25 to-background py-16 dark:from-[#0a0f0d] dark:to-[#050807] sm:py-20"
         aria-labelledby="benefits-title"
       >
         <div className="mx-auto max-w-6xl px-4">
@@ -378,7 +401,7 @@ export function LandingView() {
                 variants={itemVariant(reduce, 32)}
                 className="h-full"
               >
-                <Card className="h-full border-border/70 transition-shadow hover:shadow-md">
+                <Card className="h-full border-border/70 transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-sm">
                   <CardHeader className="space-y-3 pt-6">
                     <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <Icon className="size-5" aria-hidden />
@@ -397,7 +420,10 @@ export function LandingView() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" aria-labelledby="steps-title">
+      <section
+        className="border-b border-border/40 bg-gradient-to-b from-muted/25 to-background py-16 dark:from-[#0a0f0d] dark:to-[#050807] sm:py-20"
+        aria-labelledby="steps-title"
+      >
         <div className="mx-auto max-w-6xl px-4">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.15fr] lg:items-start lg:gap-16">
             <motion.div
@@ -439,7 +465,7 @@ export function LandingView() {
                   >
                     {step}
                   </span>
-                  <div className="rounded-xl border border-border/60 bg-card/80 p-5 shadow-sm">
+                  <div className="rounded-xl border border-border/60 bg-card/80 p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-sm">
                     <p className="font-heading font-semibold tracking-tight">
                       {title}
                     </p>
@@ -455,7 +481,7 @@ export function LandingView() {
       </section>
 
       <section
-        className="border-t border-border/60 bg-gradient-to-b from-[var(--mc-teal-bg)]/50 to-background py-16 dark:from-primary/10 dark:to-background sm:py-20"
+        className="border-t border-border/40 bg-gradient-to-b from-[var(--mc-teal-bg)]/50 to-background py-16 dark:from-primary/[0.08] dark:via-[#0a0f0d] dark:to-[#050807] sm:py-20"
         aria-labelledby="cta-title"
       >
         <motion.div
@@ -517,7 +543,7 @@ export function LandingView() {
       </section>
 
       <motion.footer
-        className="border-t border-border/60 py-8"
+        className="border-t border-border/40 bg-background/30 py-8 dark:border-white/10"
         {...fadeY(reduce, 12, 0.4, 0)}
         viewport={inViewTight}
       >
@@ -531,6 +557,6 @@ export function LandingView() {
           </Link>
         </div>
       </motion.footer>
-    </main>
+    </div>
   );
 }

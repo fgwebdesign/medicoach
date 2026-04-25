@@ -27,18 +27,19 @@ export default async function ChatPage() {
       <SiteHeader />
       <main
         className={cn(
-          "min-h-[calc(100dvh-3.5rem)] w-full",
-          "bg-gradient-to-b from-background via-primary/[0.02] to-muted/20",
+          "min-h-[calc(100dvh-3.75rem)] w-full",
+          "bg-gradient-to-b from-background via-primary/[0.04] to-muted/25",
+          "dark:via-primary/[0.06] dark:to-background",
         )}
       >
         <div
           className={cn(
             "mx-auto flex w-full max-w-6xl flex-col gap-6 px-3 py-5 sm:px-5 sm:py-6",
-            "lg:grid lg:min-h-[calc(100dvh-3.5rem-2.5rem)] lg:max-w-6xl lg:grid-cols-[minmax(0,280px)_1fr] lg:items-start lg:gap-8 lg:px-6 lg:py-8",
+            "lg:grid lg:min-h-[calc(100dvh-3.75rem-1.5rem)] lg:max-w-6xl lg:grid-cols-[minmax(0,300px)_1fr] lg:items-stretch lg:gap-8 lg:px-6 lg:py-7",
           )}
         >
           <ChatGuidanceSidebar />
-          <div className="min-w-0">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <MediChat />
           </div>
         </div>

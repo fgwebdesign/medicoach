@@ -88,9 +88,9 @@ const en: MessageDictionary = {
       "Your browser does not support voice input. Try Chrome or Edge.",
     micInitError: "Could not start the microphone.",
     suggested: [
-      "I took metformina today and felt mild dizziness. Can that be normal?",
-      "I have high blood pressure and sometimes a cough. What should I know?",
-      "I want to log a mild headache since yesterday, about 4/10 in severity",
+      "This morning I took metformin and felt a few seconds of dizziness when I stood up. Can that be normal?",
+      "I have a cardiology visit soon: help me list 3 specific things to mention about my blood pressure and sleep.",
+      "I want to log fatigue, about 6/10 for 3 days, worse in the afternoon",
     ] as const,
   },
   terms: {
@@ -155,9 +155,9 @@ const es: MessageDictionary = {
       "Tu navegador no soporta dictado por voz. Probá Chrome o Edge.",
     micInitError: "No se pudo iniciar el micrófono.",
     suggested: [
-      "Hoy tomé metformina y tuve mareos leves, ¿puede ser normal?",
-      "Tengo presión alta y a veces tos, ¿a qué puede deberse?",
-      "Quiero anotar cefalea leve desde ayer, severidad 4",
+      "Hoy a la mañana tomé metformina y al levantarme sentí unos segundos de mareo, ¿puede ser normal?",
+      "Tengo turno con el cardiólogo: armame 3 temas puntuales para comentarle de la presión y el sueño.",
+      "Anoto fatiga 6/10 hace 3 días, peor a la tarde, para llevar a la visita",
     ] as const,
   },
   terms: {

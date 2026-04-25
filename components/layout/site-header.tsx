@@ -12,7 +12,7 @@ export async function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
       <SiteHeaderClient initialEmail={email} />
     </header>
   );

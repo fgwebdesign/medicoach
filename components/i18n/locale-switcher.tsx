@@ -4,9 +4,14 @@ import { cn } from "@/lib/utils";
 import { useLocale } from "./locale-provider";
 import type { Locale } from "@/lib/i18n/types";
 
-const OPTIONS: { value: Locale; short: string }[] = [
-  { value: "es", short: "ES" },
-  { value: "en", short: "EN" },
+const OPTIONS: {
+  value: Locale;
+  short: string;
+  flag: string;
+  name: string;
+}[] = [
+  { value: "es", short: "ES", flag: "🇪🇸", name: "Español" },
+  { value: "en", short: "EN", flag: "🇺🇸", name: "English" },
 ];
 
 /**
@@ -30,14 +35,18 @@ export function LocaleSwitch({ className }: { className?: string }) {
           type="button"
           onClick={() => setLocale(o.value)}
           className={cn(
-            "min-w-9 rounded px-1.5 py-1 text-xs font-semibold transition-colors",
+            "inline-flex min-w-10 items-center justify-center gap-1 rounded px-1.5 py-1.5 text-xs font-semibold transition-colors sm:min-w-11",
             locale === o.value
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",
           )}
           aria-pressed={locale === o.value}
+          title={o.name}
         >
-          {o.short}
+          <span className="text-sm leading-none" aria-hidden>
+            {o.flag}
+          </span>
+          <span className="leading-none tracking-tight">{o.short}</span>
         </button>
       ))}
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -41,14 +40,22 @@ function authErrorToastMessage(
   return error.message;
 }
 
-const fieldLabel = "text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground";
-const inputClass =
+const fieldLabelLight =
+  "text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground";
+const fieldLabelDark =
+  "text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-white/50";
+const inputClassLight =
   "h-12 rounded-xl border-border/60 bg-background/50 pl-10 pr-3 text-base shadow-sm transition-[box-shadow,background-color] placeholder:text-muted-foreground/60 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20 md:text-sm dark:bg-input/20";
+const inputClassDark =
+  "h-12 rounded-xl border border-white/15 bg-white/[0.07] pl-10 pr-3 text-base text-white shadow-sm transition-[box-shadow,background-color] placeholder:text-white/40 focus-visible:border-primary/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-primary/30 md:text-sm";
 
 export function LoginForm({
   afterAuthPath = "/dashboard",
+  onDark = false,
 }: {
   afterAuthPath?: string;
+  /** Página con fondo oscuro (login marketing). */
+  onDark?: boolean;
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -182,6 +189,24 @@ export function LoginForm({
     }
   }
 
+  const fieldLabel = onDark ? fieldLabelDark : fieldLabelLight;
+  const inputClass = onDark ? inputClassDark : inputClassLight;
+  const tabsListClass = onDark
+    ? "grid h-12 w-full grid-cols-2 gap-0 rounded-full border border-white/20 bg-white/[0.06] p-1 shadow-inner"
+    : "grid h-12 w-full grid-cols-2 gap-0 rounded-full border border-border/50 bg-muted/40 p-1 shadow-inner";
+  const tabTriggerClass = onDark
+    ? "h-full rounded-full text-sm font-medium text-white/65 data-[state=active]:bg-white/12 data-[state=active]:text-white data-[state=active]:shadow-sm"
+    : "h-full rounded-full text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm";
+  const policyTextClass = onDark
+    ? "text-center text-xs leading-relaxed text-white/45"
+    : "text-center text-xs leading-relaxed text-muted-foreground";
+  const eyeButtonClass = onDark
+    ? "absolute right-2.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+    : "absolute right-2.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground";
+  const iconClassName = onDark
+    ? "pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/50 transition-colors group-focus-within:text-primary"
+    : "pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary";
+
   return (
     <div className="w-full">
       <Tabs
@@ -191,18 +216,18 @@ export function LoginForm({
       >
         <div className="mb-6">
           <TabsList
-            className="grid h-12 w-full grid-cols-2 gap-0 rounded-full border border-border/50 bg-muted/40 p-1 shadow-inner"
+            className={tabsListClass}
             variant="default"
           >
             <TabsTrigger
               value="login"
-              className="h-full rounded-full text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className={tabTriggerClass}
             >
               Iniciar sesión
             </TabsTrigger>
             <TabsTrigger
               value="signup"
-              className="h-full rounded-full text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className={tabTriggerClass}
             >
               Crear cuenta
             </TabsTrigger>
@@ -220,7 +245,7 @@ export function LoginForm({
               </label>
               <div className="group relative">
                 <Mail
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                  className={iconClassName}
                   aria-hidden
                 />
                 <Input
@@ -252,7 +277,7 @@ export function LoginForm({
               </div>
               <div className="group relative">
                 <Lock
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                  className={iconClassName}
                   aria-hidden
                 />
                 <Input
@@ -270,7 +295,7 @@ export function LoginForm({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                  className={eyeButtonClass}
                   disabled={pending}
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
@@ -317,7 +342,7 @@ export function LoginForm({
                 </label>
                 <div className="group relative">
                   <User
-                    className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                    className={iconClassName}
                     aria-hidden
                   />
                   <Input
@@ -343,7 +368,7 @@ export function LoginForm({
                 </label>
                 <div className="group relative">
                   <User
-                    className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                    className={iconClassName}
                     aria-hidden
                   />
                   <Input
@@ -371,7 +396,7 @@ export function LoginForm({
               </label>
               <div className="group relative">
                 <Phone
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                  className={iconClassName}
                   aria-hidden
                 />
                 <Input
@@ -399,7 +424,7 @@ export function LoginForm({
               </label>
               <div className="group relative">
                 <Mail
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                  className={iconClassName}
                   aria-hidden
                 />
                 <Input
@@ -429,7 +454,7 @@ export function LoginForm({
               </label>
               <div className="group relative">
                 <Lock
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
+                  className={iconClassName}
                   aria-hidden
                 />
                 <Input
@@ -447,7 +472,7 @@ export function LoginForm({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                  className={eyeButtonClass}
                   disabled={pending}
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
@@ -462,7 +487,7 @@ export function LoginForm({
               </div>
             </div>
 
-            <p className="text-center text-xs leading-relaxed text-muted-foreground">
+            <p className={policyTextClass}>
               Al registrarte aceptás el uso de tus datos asociado a tu perfil
               de paciente, según las políticas del servicio.
             </p>
@@ -487,16 +512,6 @@ export function LoginForm({
           </form>
         </TabsContent>
       </Tabs>
-
-      <p className="mt-6 text-center">
-        <Button
-          variant="link"
-          className="h-auto p-0 text-sm font-normal text-muted-foreground"
-          asChild
-        >
-          <Link href="/">← Volver al inicio</Link>
-        </Button>
-      </p>
     </div>
   );
 }

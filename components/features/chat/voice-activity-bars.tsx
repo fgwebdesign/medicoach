@@ -6,6 +6,18 @@ import { cn } from "@/lib/utils";
 
 const BAR_COUNT = 5;
 
+function safeCloseAudioContext(
+  ctx: AudioContext | null | undefined,
+): void {
+  if (!ctx) return;
+  if (ctx.state === "closed") return;
+  try {
+    void ctx.close();
+  } catch {
+    /* InvalidStateError si ya se cerró por otra vía (race, Strict Mode) */
+  }
+}
+
 type VoiceActivityMeterProps = {
   /** `true` mientras se escucha. */
   active: boolean;
@@ -77,7 +89,7 @@ export function VoiceActivityMeter({
           } catch {
             /* ignore */
           }
-          void ctxRef.current?.close();
+          safeCloseAudioContext(ctx);
           return;
         }
         const data = new Uint8Array(analyser.frequencyBinCount);
@@ -110,7 +122,7 @@ export function VoiceActivityMeter({
       } catch {
         /* ignore */
       }
-      void ctxRef.current?.close();
+      safeCloseAudioContext(ctxRef.current);
       sourceRef.current = null;
       analyserRef.current = null;
       ctxRef.current = null;

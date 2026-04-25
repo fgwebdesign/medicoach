@@ -10,6 +10,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingPageMain } from "@/components/layout/marketing-page-main";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,13 +77,14 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:py-10">
+      <MarketingPageMain>
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:py-10">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Tu panel
             </p>
-            <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Hola, {displayName}
             </h1>
             <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
@@ -310,27 +312,32 @@ export default async function DashboardPage() {
 
         <Separator />
 
-        <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/60 bg-gradient-to-br from-primary/[0.06] to-transparent p-6 sm:flex-row sm:px-8">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/50 bg-gradient-to-br from-primary/[0.08] to-transparent p-6 dark:from-primary/10 dark:via-card/20 dark:to-transparent sm:flex-row sm:px-8">
           <div className="flex items-start gap-3 text-center sm:text-left">
             <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Sparkles className="size-5" aria-hidden />
             </span>
             <div>
-              <p className="font-heading font-semibold">Próximo paso</p>
+              <p className="font-heading font-semibold text-foreground">Próximo paso</p>
               <p className="text-sm text-muted-foreground">
                 Llevá un resumen claro a tu consulta o seguí conversando con
                 MediCoach.
               </p>
             </div>
           </div>
-          <Button asChild variant="secondary" className="gap-2 rounded-xl">
+          <Button
+            asChild
+            variant="secondary"
+            className="gap-2 rounded-xl border border-border/60 bg-card text-foreground shadow-sm hover:bg-muted dark:border-white/10 dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
+          >
             <Link href="/report">
               Generar / ver reporte
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Button>
         </div>
-      </main>
+        </div>
+      </MarketingPageMain>
     </>
   );
 }

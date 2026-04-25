@@ -10,6 +10,8 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-dm-sans), var(--font-inter), ui-sans-serif,
     system-ui, sans-serif;
+  /* Editorial hero (Fraunces) — usado con font-hero */
+  --font-hero: var(--font-hero-serif), ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -50,29 +52,30 @@
 }
 
 :root {
-  /* MediCoach: teal clínico + neutros (guía UX) */
+  /* MediCoach: teal + mint claro (light) */
   --mc-teal: #0f7b6c;
   --mc-teal-dark: #0a5c51;
   --mc-teal-light: #14a896;
   --mc-teal-bg: #e6f4f2;
-  --background: oklch(0.99 0.002 200);
-  --foreground: oklch(0.25 0.02 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.02 250);
-  --primary: oklch(0.48 0.09 175);
+  /* Fondo: papel con tinte verde; cards un poco más sólidos */
+  --background: oklch(0.97 0.02 175);
+  --foreground: oklch(0.24 0.03 175);
+  --card: oklch(0.995 0.008 175);
+  --card-foreground: oklch(0.24 0.03 175);
+  --popover: oklch(0.995 0.008 175);
+  --popover-foreground: oklch(0.24 0.03 175);
+  --primary: oklch(0.45 0.1 175);
   --primary-foreground: oklch(0.99 0.01 175);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.95 0.03 175);
+  --secondary-foreground: oklch(0.22 0.04 175);
+  --muted: oklch(0.94 0.025 175);
+  --muted-foreground: oklch(0.45 0.03 180);
+  --accent: oklch(0.94 0.03 175);
+  --accent-foreground: oklch(0.22 0.04 175);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.55 0.08 175);
+  --border: oklch(0.9 0.02 175);
+  --input: oklch(0.92 0.02 175);
+  --ring: oklch(0.5 0.1 175);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -90,24 +93,25 @@
 }
 
 .dark {
-  --background: oklch(0.18 0.02 250);
-  --foreground: oklch(0.97 0.01 200);
-  --card: oklch(0.22 0.02 250);
-  --card-foreground: oklch(0.97 0.01 200);
-  --popover: oklch(0.22 0.02 250);
-  --popover-foreground: oklch(0.97 0.01 200);
-  --primary: oklch(0.62 0.1 175);
-  --primary-foreground: oklch(0.18 0.03 175);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Bosque: mismo matiz 175, sin gris “genérico” mezclado con cards blancas */
+  --background: oklch(0.2 0.035 175);
+  --foreground: oklch(0.96 0.02 175);
+  --card: oklch(0.25 0.03 175);
+  --card-foreground: oklch(0.96 0.02 175);
+  --popover: oklch(0.26 0.03 175);
+  --popover-foreground: oklch(0.96 0.02 175);
+  --primary: oklch(0.65 0.11 175);
+  --primary-foreground: oklch(0.15 0.04 175);
+  --secondary: oklch(0.32 0.04 175);
+  --secondary-foreground: oklch(0.95 0.02 175);
+  --muted: oklch(0.3 0.03 175);
+  --muted-foreground: oklch(0.72 0.04 180);
+  --accent: oklch(0.32 0.04 175);
+  --accent-foreground: oklch(0.95 0.02 175);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: oklch(0.4 0.04 175 / 35%);
+  --input: oklch(0.4 0.04 175 / 45%);
+  --ring: oklch(0.58 0.1 175);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -137,5 +141,11 @@
   h2,
   h3 {
     font-family: var(--font-heading), var(--font-sans), system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-hero-serif {
+    font-family: var(--font-hero-serif), ui-serif, Georgia, serif;
   }
 }
