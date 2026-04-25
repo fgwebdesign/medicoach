@@ -135,6 +135,7 @@ function MediChatBody() {
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
+        credentials: "include",
         prepareSendMessagesRequest: ({
           id,
           messages: msgs,
@@ -180,7 +181,10 @@ function MediChatBody() {
     let cancel = false;
     (async () => {
       try {
-        const r = await fetch("/api/chat/sessions", { cache: "no-store" });
+        const r = await fetch("/api/chat/sessions", {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (!r.ok) throw new Error("sessions");
         const { sessions } = (await r.json()) as { sessions: { id: string }[] };
         if (cancel) return;
@@ -188,6 +192,7 @@ function MediChatBody() {
           const top = sessions[0];
           const d = await fetch(`/api/chat/sessions/${top.id}`, {
             cache: "no-store",
+            credentials: "include",
           });
           if (!d.ok) throw new Error("session");
           const j = (await d.json()) as { uiMessages: UIMessage[]; id: string };
@@ -195,7 +200,10 @@ function MediChatBody() {
           setActiveSessionId(j.id);
           setMessages(j.uiMessages.length ? j.uiMessages : []);
         } else {
-          const p = await fetch("/api/chat/sessions", { method: "POST" });
+          const p = await fetch("/api/chat/sessions", {
+            method: "POST",
+            credentials: "include",
+          });
           if (!p.ok) throw new Error("post");
           const { id } = (await p.json()) as { id: string };
           if (cancel) return;
@@ -278,7 +286,10 @@ function MediChatBody() {
     setListening(false);
     setInterim("");
     try {
-      const p = await fetch("/api/chat/sessions", { method: "POST" });
+      const p = await fetch("/api/chat/sessions", {
+        method: "POST",
+        credentials: "include",
+      });
       if (p.ok) {
         const { id } = (await p.json()) as { id: string };
         setActiveSessionId(id);
@@ -297,7 +308,10 @@ function MediChatBody() {
       if (busy) void stop();
       clearError();
       try {
-        const d = await fetch(`/api/chat/sessions/${id}`, { cache: "no-store" });
+        const d = await fetch(`/api/chat/sessions/${id}`, {
+            cache: "no-store",
+            credentials: "include",
+          });
         if (!d.ok) return;
         const j = (await d.json()) as { uiMessages: UIMessage[]; id: string };
         setActiveSessionId(j.id);

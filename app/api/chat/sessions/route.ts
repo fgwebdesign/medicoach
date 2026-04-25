@@ -1,5 +1,6 @@
 import { lastUserPreview } from "@/lib/medicoach/chat/snapshots-to-ui";
-import { createClient } from "@/lib/integrations/supabase/server";
+import { createClientFromRequest } from "@/lib/integrations/supabase/route-request";
+import { type NextRequest } from "next/server";
 
 export const maxDuration = 30;
 
@@ -10,8 +11,8 @@ export type SessionListItem = {
 };
 
 /** Listado de charlas recientes (RLS: solo del usuario). */
-export async function GET() {
-  const supabase = await createClient();
+export async function GET(request: NextRequest) {
+  const supabase = createClientFromRequest(request);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -37,8 +38,8 @@ export async function GET() {
 }
 
 /** Crea una charla vacía; los mensajes se van guardando vía `POST /api/chat` con `sessionId`. */
-export async function POST() {
-  const supabase = await createClient();
+export async function POST(request: NextRequest) {
+  const supabase = createClientFromRequest(request);
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -69,7 +69,7 @@ export function ReportPdfSheet({ open, onOpenChange, autoStartNonce = 0 }: Props
     try {
       const res = await fetch("/api/report", {
         method: "GET",
-        credentials: "same-origin",
+        credentials: "include",
         cache: "no-store",
         signal: ac.signal,
       });

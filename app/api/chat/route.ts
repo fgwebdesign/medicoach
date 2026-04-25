@@ -13,7 +13,8 @@ import {
   getMediCoachSystemPrompt,
 } from "@/lib/medicoach/agent/prompts";
 import { detectPatterns } from "@/lib/medicoach/patterns";
-import { createClient } from "@/lib/integrations/supabase/server";
+import { createClientFromRequest } from "@/lib/integrations/supabase/route-request";
+import { type NextRequest } from "next/server";
 import {
   persistChatTurn,
   type ChatMessageSnapshot,
@@ -60,7 +61,7 @@ function uiMessagesToSnapshot(messages: UIMessage[]): ChatMessageSnapshot[] {
   });
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const gateway = aiGatewayEnabled();
   const openaiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
   const anthropicKey = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
   const { messages: rawMessages, sessionId, locale } = parsed.data;
   const messages = normalizeToUiMessages(rawMessages);
 
-  const supabase = await createClient();
+  const supabase = createClientFromRequest(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();

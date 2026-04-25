@@ -3,6 +3,7 @@
  * { mcpBaseUrl, timeoutMs } a createMediCoachTools (conexión Track 2 al servidor MCP en runtime).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 
 const mcpCapture = vi.hoisted(
   () =>
@@ -23,16 +24,14 @@ vi.mock("@/lib/medicoach/agent/chat-tools", async (importOriginal) => {
   };
 });
 
-vi.mock("@/lib/integrations/supabase/server", () => ({
-  createClient: vi.fn(() =>
-    Promise.resolve({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "patient-integ-1" } },
-        }),
-      },
-    }),
-  ),
+vi.mock("@/lib/integrations/supabase/route-request", () => ({
+  createClientFromRequest: () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: "patient-integ-1" } },
+      }),
+    },
+  }),
 }));
 
 vi.mock("@/lib/medicoach/patterns", () => ({
@@ -93,7 +92,7 @@ describe("POST /api/chat (integración MCP)", () => {
     };
 
     const res = await POST(
-      new Request("https://app.example.com/api/chat", {
+      new NextRequest("https://app.example.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -115,7 +114,7 @@ describe("POST /api/chat (integración MCP)", () => {
 
     const { POST } = await import("./route");
     const res = await POST(
-      new Request("https://otro.com/api/chat", {
+      new NextRequest("https://otro.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,13 +1,14 @@
 import { snapshotsToUiMessages } from "@/lib/medicoach/chat/snapshots-to-ui";
-import { createClient } from "@/lib/integrations/supabase/server";
+import { createClientFromRequest } from "@/lib/integrations/supabase/route-request";
+import { type NextRequest } from "next/server";
 
 export const maxDuration = 30;
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, context: Ctx) {
+export async function GET(request: NextRequest, context: Ctx) {
   const { id } = await context.params;
-  const supabase = await createClient();
+  const supabase = createClientFromRequest(request);
   const {
     data: { user },
   } = await supabase.auth.getUser();

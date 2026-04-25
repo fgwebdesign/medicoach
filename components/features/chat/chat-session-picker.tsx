@@ -36,7 +36,10 @@ export function ChatSessionPicker({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/chat/sessions", { cache: "no-store" });
+      const r = await fetch("/api/chat/sessions", {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (!r.ok) {
         setRows([]);
         return;
