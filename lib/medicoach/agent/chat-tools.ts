@@ -7,17 +7,76 @@ import {
 } from "@/lib/medicoach/fda/client";
 import { mentionsDrug } from "@/lib/medicoach/fda/interactions";
 import { searchMedicalKnowledge } from "@/lib/medicoach/knowledge-search";
+import { mcpOrFallback } from "@/lib/medicoach/mcp/mcp-or-fallback";
+import type { McpRuntimeConfig } from "@/lib/medicoach/mcp/config";
 import type { Locale } from "@/lib/i18n/types";
 
-interface ToolContext {
+/**
+ * Arquitectura híbrida (Hackathon Track 2 — v0 + MCPs):
+ * - Fármacos y conocimiento general van primero vía **MCP HTTP** (`MEDICOACH_MCP_URL` o el mismo
+ *   deploy en `/api/mcp`), de modo que el agente *consume* un servidor MCP en el flujo real del
+ *   chat, no solo publica un endpoint. Si MCP falla, se usa la implementación local (openFDA / JSON)
+ *   sin interrumpir el stream.
+ * - Datos sensibles y contexto por paciente (`registrar_sintoma`, `obtener_historial`, reporte)
+ *   quedan en **tools internas** con Supabase (service role en servidor), autenticadas al usuario.
+ */
+export interface ToolContext {
   patientId?: string;
   /** Idioma de la conversación (afecta descripciones de tools y textos de respuesta). */
   locale?: Locale;
+  /**
+   * Conexión al MCP remoto (mismo u otro despliegue). Solo servidor.
+   * Si se omite, las tools de conocimiento usan solo el fallback local.
+   */
+  mcp?: McpRuntimeConfig;
+}
+
+async function localConsultarMedicamento(nombre: string) {
+  try {
+    const label = await fetchDrugLabel(nombre);
+    return label;
+  } catch (e) {
+    return { error: String(e), nombre };
+  }
+}
+
+async function localDetectarInteracciones(
+  medicamento1: string,
+  medicamento2: string,
+) {
+  const [label1, label2] = await Promise.all([
+    fetchDrugInteractions(medicamento1),
+    fetchDrugInteractions(medicamento2),
+  ]);
+
+  const warnings1 =
+    "error" in label1 ? "" : (label1.drug_interactions ?? "");
+  const warnings2 =
+    "error" in label2 ? "" : (label2.drug_interactions ?? "");
+
+  const interaccion =
+    mentionsDrug(warnings1, medicamento2) ||
+    mentionsDrug(warnings2, medicamento1);
+
+  const detailFrom = (label: typeof label1, warnings: string) => {
+    if ("error" in label) return `Error openFDA: ${label.error}`.slice(0, 400);
+    return warnings.slice(0, 400) || "Sin datos de interacciones en FDA";
+  };
+
+  return {
+    medicamento1,
+    medicamento2,
+    interaccion_detectada: interaccion,
+    detalle1: detailFrom(label1, warnings1),
+    detalle2: detailFrom(label2, warnings2),
+    fuente: "openFDA Drug Label",
+  };
 }
 
 export function createMediCoachTools(ctx: ToolContext = {}) {
   const locale = ctx.locale ?? "es";
   const en = locale === "en";
+  const mcp = ctx.mcp;
 
   return {
     consultar_medicamento: tool({
@@ -34,12 +93,12 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
           ),
       }),
       execute: async ({ nombre }) => {
-        try {
-          const label = await fetchDrugLabel(nombre);
-          return label;
-        } catch (e) {
-          return { error: String(e), nombre };
-        }
+        return mcpOrFallback<unknown>({
+          mcp,
+          toolName: "consultar_medicamento",
+          args: { nombre },
+          local: () => localConsultarMedicamento(nombre),
+        });
       },
     }),
 
@@ -51,33 +110,12 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
         medicamento2: z.string(),
       }),
       execute: async ({ medicamento1, medicamento2 }) => {
-        const [label1, label2] = await Promise.all([
-          fetchDrugInteractions(medicamento1),
-          fetchDrugInteractions(medicamento2),
-        ]);
-
-        const warnings1 =
-          "error" in label1 ? "" : (label1.drug_interactions ?? "");
-        const warnings2 =
-          "error" in label2 ? "" : (label2.drug_interactions ?? "");
-
-        const interaccion =
-          mentionsDrug(warnings1, medicamento2) ||
-          mentionsDrug(warnings2, medicamento1);
-
-        const detailFrom = (label: typeof label1, warnings: string) => {
-          if ("error" in label) return `Error openFDA: ${label.error}`.slice(0, 400);
-          return warnings.slice(0, 400) || "Sin datos de interacciones en FDA";
-        };
-
-        return {
-          medicamento1,
-          medicamento2,
-          interaccion_detectada: interaccion,
-          detalle1: detailFrom(label1, warnings1),
-          detalle2: detailFrom(label2, warnings2),
-          fuente: "openFDA Drug Label",
-        };
+        return mcpOrFallback<unknown>({
+          mcp,
+          toolName: "detectar_interacciones",
+          args: { medicamento1, medicamento2 },
+          local: () => localDetectarInteracciones(medicamento1, medicamento2),
+        });
       },
     }),
 
@@ -95,13 +133,20 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
           ),
       }),
       execute: async ({ query }) => {
-        const results = searchMedicalKnowledge(query, locale, 4);
-        return {
-          results,
-          fuente: en
-            ? "MediCoach curated knowledge base"
-            : "MediCoach Knowledge Base (curado)",
-        };
+        return mcpOrFallback<unknown>({
+          mcp,
+          toolName: "buscar_conocimiento",
+          args: { query },
+          local: async () => {
+            const results = searchMedicalKnowledge(query, locale, 4);
+            return {
+              results,
+              fuente: en
+                ? "MediCoach curated knowledge base"
+                : "MediCoach Knowledge Base (curado)",
+            };
+          },
+        });
       },
     }),
 

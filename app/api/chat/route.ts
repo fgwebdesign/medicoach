@@ -7,6 +7,7 @@ import {
 import { aiGatewayEnabled } from "@/lib/medicoach/ai/env";
 import { resolveChatModel } from "@/lib/medicoach/ai/models";
 import { createMediCoachTools } from "@/lib/medicoach/agent/chat-tools";
+import { getMcpTimeoutMs, resolveMcpBaseUrl } from "@/lib/medicoach/mcp/config";
 import {
   formatPatternContext,
   getMediCoachSystemPrompt,
@@ -46,19 +47,6 @@ function normalizeToUiMessages(raw: unknown[]): UIMessage[] {
     }
     return m as UIMessage;
   });
-}
-
-function lastUserTextFromUi(messages: UIMessage[]): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const m = messages[i];
-    if (m?.role !== "user" || !m.parts?.length) continue;
-    const text = m.parts
-      .filter((p): p is { type: "text"; text: string } => p.type === "text")
-      .map((p) => p.text)
-      .join("");
-    if (text.trim()) return text;
-  }
-  return "";
 }
 
 function uiMessagesToSnapshot(messages: UIMessage[]): ChatMessageSnapshot[] {
@@ -133,7 +121,17 @@ export async function POST(req: Request) {
     }
   }
 
-  const tools = createMediCoachTools({ patientId: user.id, locale });
+  /**
+   * Conecta el agente a un servidor MCP (por defecto el propio /api/mcp) para
+   * consultar_medicamento / detectar_interacciones / buscar_conocimiento. Cumplimiento
+   * explícito de Track 2: el chat consume MCP en runtime, no solo publica el endpoint.
+   */
+  const mcpBaseUrl = resolveMcpBaseUrl(req.url);
+  const mcp = {
+    mcpBaseUrl,
+    timeoutMs: getMcpTimeoutMs(),
+  };
+  const tools = createMediCoachTools({ patientId: user.id, locale, mcp });
   let modelMessages;
   try {
     modelMessages = await convertToModelMessages(messages, { tools });
