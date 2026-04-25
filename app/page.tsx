@@ -97,8 +97,9 @@ export default function Home() {
                 </Button>
               </div>
               <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                Podés probar el chat sin registrarte. Si creás cuenta, guardamos
-                tu conversación para que no pierdas el hilo.
+                Para usar el chat necesitás iniciar sesión o crear una cuenta: así
+                guardamos tu conversación de forma segura y podés retomar el hilo
+                cuando vuelvas. El asistente solo está disponible con cuenta.
               </p>
             </div>
             <div className="flex flex-1 justify-center lg:justify-end">
