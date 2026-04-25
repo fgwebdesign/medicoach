@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MAIN_NAV } from "@/config/navigation";
 import { createClient } from "@/lib/integrations/supabase/server";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export async function SiteHeader() {
   let email: string | null = null;
@@ -30,6 +31,7 @@ export async function SiteHeader() {
               <Link href={href}>{label}</Link>
             </Button>
           ))}
+          <ThemeToggle />
           {email ? (
             <>
               <span

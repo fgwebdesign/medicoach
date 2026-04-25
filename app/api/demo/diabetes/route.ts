@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import medicalKnowledge from "@/data/medical-knowledge.json";
 import { aiGatewayEnabled } from "@/lib/medicoach/ai/env";
 import { resolveChatModel } from "@/lib/medicoach/ai/models";
+import { createClient } from "@/lib/integrations/supabase/server";
 
 export const maxDuration = 60;
 
@@ -43,6 +44,17 @@ export async function POST(req: Request) {
           "Configurá AI_GATEWAY_API_KEY (u OIDC) o ANTHROPIC_API_KEY / OPENAI_API_KEY.",
       },
       { status: 503 },
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return Response.json(
+      { error: "Iniciá sesión para usar este endpoint de prueba." },
+      { status: 401 },
     );
   }
 

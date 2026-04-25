@@ -109,9 +109,19 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    return Response.json(
+      {
+        error:
+          "Necesitás iniciar sesión para usar el chat. Entrá a MediCoach, creá una cuenta o accedé con tu email.",
+      },
+      { status: 401 },
+    );
+  }
+
   // Detección de patrones inyectada al system prompt como contexto extra
   let patternContext = "";
-  if (user?.id) {
+  if (user.id) {
     try {
       const patterns = await detectPatterns(user.id);
       if (patterns.length > 0) {
@@ -130,7 +140,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const tools = createMediCoachTools({ patientId: user?.id });
+  const tools = createMediCoachTools({ patientId: user.id });
   let modelMessages;
   try {
     modelMessages = await convertToModelMessages(messages, { tools });
@@ -151,7 +161,6 @@ export async function POST(req: Request) {
     tools,
     stopWhen: stepCountIs(8),
     onFinish: async ({ text }) => {
-      if (!user?.id) return;
       try {
         const snap = uiMessagesToSnapshot(messages);
         snap.push({ role: "assistant", content: text });

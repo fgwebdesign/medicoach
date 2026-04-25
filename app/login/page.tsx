@@ -3,15 +3,29 @@ import { HeartPulse, Shield, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { LoginForm } from "@/components/features/auth/login-form";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+
+function safePostAuthPath(value: string | undefined): string {
+  if (!value) return "/dashboard";
+  if (
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("..") ||
+    /[\s\0]/.test(value) ||
+    value.length > 256
+  ) {
+    return "/dashboard";
+  }
+  return value;
+}
 
 type Props = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: Props) {
   const q = await searchParams;
   const err = q.error ? decodeURIComponent(q.error) : undefined;
+  const afterAuthPath = safePostAuthPath(q.next);
   const supabaseReady = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
       (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
@@ -104,7 +118,8 @@ export default async function LoginPage({ searchParams }: Props) {
                 Bienvenido
               </p>
               <p className="text-sm text-muted-foreground sm:text-base">
-                Iniciá sesión o creá una cuenta para guardar tu progreso.
+                Iniciá sesión o creá una cuenta para acceder al chat, al panel
+                y a tu resumen.
               </p>
             </div>
 
@@ -135,10 +150,8 @@ export default async function LoginPage({ searchParams }: Props) {
                   {err}
                 </div>
               ) : null}
-              <LoginForm />
+              <LoginForm afterAuthPath={afterAuthPath} />
             </div>
-
-            <Separator className="bg-border/50" />
 
             <p className="text-center text-sm text-muted-foreground">
               <Button
@@ -146,7 +159,7 @@ export default async function LoginPage({ searchParams }: Props) {
                 className="h-auto p-0 font-medium text-foreground/80"
                 asChild
               >
-                <Link href="/chat">Probar el chat sin cuenta</Link>
+                <Link href="/">Volver al inicio</Link>
               </Button>
             </p>
           </div>
