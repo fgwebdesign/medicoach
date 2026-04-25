@@ -8,10 +8,9 @@
 -- Gestión de usuarios (Supabase Auth)
 -- ------------------------------------
 -- • Los logins viven en auth.users (panel: Authentication → Users).
--- • La app usa magic link: signInWithOtp + /auth/callback (ver login-form).
--- • public.patient_profiles.id = auth.users.id (1:1). Al registrarse, el
---   trigger on_auth_user_created → handle_new_user() inserta la fila de
---   perfil (definido en supabase/schema.sql).
+-- • La app usa email/contraseña: signInWithPassword / signUp; callback /auth/callback.
+-- • public.patient_profiles (id, display_name, first_name, last_name, phone, …) = 1:1 con auth.users.
+--   Al registrarse, on_auth_user_created → handle_new_user() inserta la fila con metadata del signUp.
 -- • medicaciones, síntomas y chat_sessions referencian patient_profiles
 --   (patient_id / id según tabla), siempre bajo RLS con auth.uid().
 --
@@ -58,6 +57,9 @@ CREATE TABLE public.medications (
 CREATE TABLE public.patient_profiles (
   id uuid NOT NULL,
   display_name text,
+  first_name text,
+  last_name text,
+  phone text,
   conditions text[],
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),

@@ -8,6 +8,9 @@ create extension if not exists vector;
 create table public.patient_profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text,
+  first_name text,
+  last_name text,
+  phone text,
   conditions text[],
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -135,13 +138,28 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  fn text;
+  ln text;
+  ph text;
+  full_display text;
 begin
-  insert into public.patient_profiles (id, display_name)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1))
-  )
+  fn := nullif(trim(coalesce(new.raw_user_meta_data->>'first_name', '')), '');
+  ln := nullif(trim(coalesce(new.raw_user_meta_data->>'last_name', '')), '');
+  ph := nullif(trim(coalesce(new.raw_user_meta_data->>'phone', '')), '');
+
+  full_display := nullif(trim(concat_ws(' ', fn, ln)), '');
+  if full_display is null then
+    full_display := nullif(trim(coalesce(new.raw_user_meta_data->>'full_name', '')), '');
+  end if;
+  if full_display is null then
+    full_display := split_part(new.email, '@', 1);
+  end if;
+
+  insert into public.patient_profiles (id, display_name, first_name, last_name, phone)
+  values (new.id, full_display, fn, ln, ph)
   on conflict (id) do nothing;
+
   return new;
 end;
 $$;

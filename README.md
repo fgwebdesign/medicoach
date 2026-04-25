@@ -22,7 +22,7 @@ Abrir [http://localhost:3000](http://localhost:3000). Healthcheck: [http://local
 
 ## Supabase
 
-1. En el dashboard: **SQL** → pegá y ejecutá `supabase/schema.sql`.
+1. En el dashboard: **SQL** → pegá y ejecutá `supabase/schema.sql` (proyecto nuevo) **o** aplicá migraciones: `supabase db push` / ejecutá el SQL de `supabase/migrations/20260425120000_patient_profile_identity.sql` si tu proyecto ya existía.
 2. Copiá **URL** y **anon key** (o publishable) a `.env.local`.
 3. **Authentication → Providers**: activá **Email** (ya está por defecto).
 4. **Authentication → URL Configuration**:

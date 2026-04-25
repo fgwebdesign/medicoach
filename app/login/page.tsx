@@ -1,16 +1,8 @@
 import Link from "next/link";
-import { Activity, ShieldCheck, Stethoscope } from "lucide-react";
+import { HeartPulse, Shield, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { LoginForm } from "@/components/features/auth/login-form";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 type Props = {
@@ -29,123 +21,134 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="flex min-h-0 flex-1 flex-col lg:grid lg:min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <section className="relative hidden flex-col justify-between overflow-hidden border-b border-border/60 bg-gradient-to-br from-[var(--mc-teal-bg)] via-background to-primary/[0.07] px-10 py-12 lg:flex lg:border-b-0 lg:border-r dark:from-primary/[0.12] dark:via-card dark:to-background">
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background lg:grid lg:min-h-[calc(100dvh-3.5rem)] lg:grid-cols-2">
+        {/* Fondo: capas tipo producto (referencia: sistemas con canvas suave) */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(1200px_circle_at_15%_10%,oklch(0.75_0.06_175/0.22),transparent_55%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(800px_circle_at_85%_60%,oklch(0.6_0.08_175/0.12),transparent_50%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 mask-[linear-gradient(180deg,white,transparent_85%)] bg-[linear-gradient(to_right,oklch(0.5_0.02_250/0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.5_0.02_250/0.06)_1px,transparent_1px)] bg-size-[2.5rem_2.5rem] opacity-50 dark:opacity-30"
+          aria-hidden
+        />
+
+        <section className="relative flex flex-col justify-between border-b border-border/40 bg-gradient-to-br from-primary/[0.08] via-background to-primary/[0.04] px-6 py-10 sm:px-10 sm:py-12 lg:min-h-0 lg:border-b-0 lg:border-r lg:border-border/30 lg:py-14 dark:from-primary/[0.1] dark:via-card/30 dark:to-background">
           <div
-            className="pointer-events-none absolute -right-24 -top-24 size-[380px] rounded-full bg-primary/[0.12] blur-3xl dark:bg-primary/[0.18]"
+            className="pointer-events-none absolute -right-20 top-0 size-72 rounded-full bg-primary/15 blur-3xl"
             aria-hidden
           />
-          <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/80 px-3 py-1 text-xs font-medium text-primary shadow-sm backdrop-blur dark:bg-card/80">
-              <Activity className="size-3.5" aria-hidden />
-              MediCoach
-            </div>
-            <h1 className="font-heading max-w-md text-3xl font-bold leading-tight tracking-tight text-foreground xl:text-4xl">
-              Tu seguimiento clínico, con calma
+          <div
+            className="pointer-events-none absolute -left-10 bottom-0 size-64 rounded-full bg-primary/10 blur-3xl"
+            aria-hidden
+          />
+
+          <div className="relative z-10 max-w-lg space-y-5">
+            <p className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              Acceso
+            </p>
+            <h1 className="font-heading text-balance text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl lg:text-[2.4rem] lg:leading-[1.1]">
+              Un lugar tranquilo para tu salud
             </h1>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Accedé con tu email y contraseña. Tus datos quedan seguros y solo
-              vos los podés ver: pensado para quien hace seguimiento de su salud
-              día a día.
+            <p className="text-pretty text-base leading-relaxed text-muted-foreground sm:text-[17px]">
+              Llevá el seguimiento de lo que te importa: síntomas, medicación y
+              dudas para el médico, con claridad.
             </p>
           </div>
-          <ul className="relative z-10 mt-12 space-y-4 text-sm text-muted-foreground">
-            <li className="flex gap-3">
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Stethoscope className="size-4" aria-hidden />
-              </span>
-              <span>
-                <strong className="font-medium text-foreground">
-                  Tu información, organizada
-                </strong>
-                <br />
-                Al entrar, creamos tu espacio personal para medicación,
-                síntomas y conversaciones con MediCoach.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <ShieldCheck className="size-4" aria-hidden />
-              </span>
-              <span>
-                <strong className="font-medium text-foreground">
-                  Privacidad ante todo
-                </strong>
-                <br />
-                Solo vos accedés a tu historial: medicación, síntomas y chats
-                quedan vinculados a tu cuenta.
-              </span>
-            </li>
+
+          <ul className="relative z-10 mt-10 space-y-5 lg:mt-0">
+            {[
+              {
+                icon: HeartPulse,
+                title: "A tu ritmo",
+                text: "Conversá cuando puedas, sin apuros ni formularios eternos.",
+              },
+              {
+                icon: Sparkles,
+                title: "Información clara",
+                text: "Te ayudamos a entender, sin reemplazar al profesional que te trata.",
+              },
+              {
+                icon: Shield,
+                title: "Solo tuyo",
+                text: "Tu historial y tus datos vinculados a tu cuenta.",
+              },
+            ].map(({ icon: Icon, title, text }) => (
+              <li
+                key={title}
+                className="flex gap-4 rounded-2xl border border-border/40 bg-background/50 p-4 shadow-sm backdrop-blur-sm dark:bg-card/40"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <p className="font-heading text-sm font-semibold text-foreground">
+                    {title}
+                  </p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                    {text}
+                  </p>
+                </div>
+              </li>
+            ))}
           </ul>
         </section>
 
-        <section className="flex flex-1 flex-col justify-center px-4 py-10 sm:px-8 lg:px-12 lg:py-12">
-          <div className="mx-auto w-full max-w-md space-y-6">
-            <div className="space-y-1 lg:hidden">
-              <Badge variant="outline" className="mb-2 font-normal">
-                MediCoach
-              </Badge>
-              <p className="font-heading text-xl font-semibold tracking-tight">
-                Entrá con tu email
+        <section className="relative flex flex-1 flex-col justify-center px-4 py-10 sm:px-8 lg:px-14 lg:py-12">
+          <div className="mx-auto w-full max-w-[440px] space-y-8">
+            <div className="space-y-1 text-center lg:text-left">
+              <p className="font-heading text-2xl font-bold tracking-[-0.02em] sm:text-3xl">
+                Bienvenido
               </p>
-              <p className="text-sm text-muted-foreground">
-                Ingresá o creá tu cuenta para empezar.
+              <p className="text-sm text-muted-foreground sm:text-base">
+                Iniciá sesión o creá una cuenta para guardar tu progreso.
               </p>
             </div>
 
-            <Card className="border-border/80 shadow-md shadow-primary/5">
-              <CardHeader className="space-y-2 pb-4">
-                <CardTitle className="font-heading text-2xl tracking-tight lg:text-[1.65rem]">
-                  Entrar a MediCoach
-                </CardTitle>
-                <CardDescription className="text-pretty text-sm leading-relaxed">
-                  Si es tu primera vez, creá tu cuenta en la pestaña "Crear
-                  cuenta". Ya tenés usuario? Usá "Iniciar sesión".
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!supabaseReady ? (
-                  <div
-                    className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-3 text-sm text-amber-950 dark:text-amber-100"
-                    role="alert"
-                  >
-                    {process.env.NODE_ENV === "development" ? (
-                      <>
-                        Falta configuración en el servidor: revisá{" "}
-                        <code className="rounded bg-muted px-1 font-mono text-xs">
-                          .env.local
-                        </code>{" "}
-                        (URL y clave pública del proyecto) y reiniciá{" "}
-                        <code className="font-mono text-xs">npm run dev</code>.
-                      </>
-                    ) : (
-                      <>
-                        El inicio de sesión no está disponible por ahora.
-                        Volvé a intentar más tarde o escribinos si el problema
-                        continúa.
-                      </>
-                    )}
-                  </div>
-                ) : null}
-                {err ? (
-                  <div
-                    className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive"
-                    role="alert"
-                  >
-                    {err}
-                  </div>
-                ) : null}
-                <LoginForm />
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border/50 bg-card/80 p-6 shadow-2xl shadow-primary/[0.06] ring-1 ring-border/30 backdrop-blur-md dark:bg-card/50 sm:p-8">
+              {!supabaseReady ? (
+                <div
+                  className="mb-5 rounded-xl border border-amber-500/35 bg-amber-500/10 px-3.5 py-3 text-sm text-amber-950 dark:text-amber-100"
+                  role="alert"
+                >
+                  {process.env.NODE_ENV === "development" ? (
+                    <>
+                      Falta configurar el entorno. Revisá{" "}
+                      <code className="rounded bg-muted px-1.5 font-mono text-xs">
+                        .env.local
+                      </code>{" "}
+                      y reiniciá el servidor de desarrollo.
+                    </>
+                  ) : (
+                    <>El inicio de sesión no está disponible en este momento.</>
+                  )}
+                </div>
+              ) : null}
+              {err ? (
+                <div
+                  className="mb-5 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive"
+                  role="alert"
+                >
+                  {err}
+                </div>
+              ) : null}
+              <LoginForm />
+            </div>
 
-            <Separator className="opacity-60" />
+            <Separator className="bg-border/50" />
 
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Button variant="link" className="h-auto text-sm text-muted-foreground" asChild>
-                <Link href="/chat">Continuar sin cuenta (solo chat)</Link>
+            <p className="text-center text-sm text-muted-foreground">
+              <Button
+                variant="link"
+                className="h-auto p-0 font-medium text-foreground/80"
+                asChild
+              >
+                <Link href="/chat">Probar el chat sin cuenta</Link>
               </Button>
-            </div>
+            </p>
           </div>
         </section>
       </main>
