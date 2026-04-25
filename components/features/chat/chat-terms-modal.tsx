@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useId, useState } from "react";
 import { Shield } from "lucide-react";
 import {
@@ -13,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { setChatTermsAccepted } from "@/lib/chat/terms-storage";
-import { cn } from "@/lib/utils";
 
 type ChatTermsModalProps = {
   open: boolean;
@@ -21,23 +21,21 @@ type ChatTermsModalProps = {
 };
 
 /**
- * Términos iniciales: aceptación obligatoria antes del chat.
- * No se puede cerrar con Escape ni clic afuera hasta aceptar.
+ * Contenido del modal: solo se monta cuando `open` es true (reinicia checkbox y evita effects).
  */
-export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
+function ChatTermsModalPanel({ onAccepted }: { onAccepted: () => void }) {
   const { t, locale } = useLocale();
   const [agreed, setAgreed] = useState(false);
   const errId = useId();
+  const checkId = useId();
 
   return (
-    <Dialog open={open}>
+    <Dialog open onOpenChange={() => {}}>
       <DialogContent
         showCloseButton={false}
         className="z-[60] w-[calc(100%-1.5rem)] max-w-lg gap-0 overflow-hidden p-0 sm:max-w-xl"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        aria-describedby={undefined}
       >
         <div className="max-h-[min(88dvh,720px)] overflow-y-auto">
           <div className="bg-gradient-to-b from-amber-50/95 to-background px-4 pt-4 pb-3 sm:px-5 sm:pt-5 dark:from-amber-950/40">
@@ -97,13 +95,14 @@ export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
             >
               <figure className="flex shrink-0 flex-col items-center gap-1.5 sm:items-start">
                 <div className="rounded-xl border border-border/50 bg-background/60 p-2.5 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
-                  <img
+                  <Image
                     src="/Logo_of_the_United_States_Food_and_Drug_Administration.svg"
                     alt={t("terms.fdaLogoAlt")}
-                    width={160}
-                    height={80}
+                    width={180}
+                    height={90}
                     className="mx-auto h-12 w-auto max-w-[200px] object-contain sm:h-14"
-                    loading="eager"
+                    unoptimized
+                    priority
                   />
                 </div>
                 <figcaption className="max-w-[200px] text-center text-[10px] leading-tight text-muted-foreground sm:text-left">
@@ -122,18 +121,16 @@ export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
 
         <DialogFooter className="m-0 flex flex-col items-stretch gap-3 border-t border-border/60 bg-muted/20 px-4 py-4 sm:flex-col sm:px-5">
           <label
-            className={cn(
-              "flex cursor-pointer items-start gap-3 rounded-lg border border-border/60 bg-background/80 p-3 text-left text-sm leading-snug text-foreground",
-              !agreed && "ring-0",
-            )}
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/60 bg-background/80 p-3 text-left text-sm leading-snug text-foreground"
+            htmlFor={checkId}
           >
             <input
+              id={checkId}
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
               className="mt-0.5 size-4 shrink-0 rounded border-border text-primary"
-              aria-invalid={!agreed}
-              aria-describedby={!agreed ? errId : undefined}
+              aria-describedby={errId}
             />
             <span className="text-[13px] sm:text-sm">{t("terms.checkbox")}</span>
           </label>
@@ -157,4 +154,13 @@ export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Términos iniciales: aceptación obligatoria antes del chat.
+ * No se puede cerrar con Escape ni clic afuera hasta aceptar.
+ */
+export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
+  if (!open) return null;
+  return <ChatTermsModalPanel onAccepted={onAccepted} />;
 }

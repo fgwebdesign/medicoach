@@ -86,8 +86,9 @@ export default async function DashboardPage() {
               Hola, {displayName}
             </h1>
             <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
-              Resumen de medicación, síntomas recientes y alertas. Los datos son
-              tuyos y se actualizan cuando usás el chat o registrás síntomas.
+              Resumen de medicación, síntomas recientes y alertas. Los síntomas
+              podés registrarlos desde el chat; la lista de medicación se muestra
+              cuando haya datos cargados en tu cuenta.
             </p>
           </div>
           <Button asChild className="shrink-0 gap-2 rounded-xl shadow-md shadow-primary/15">
@@ -189,15 +190,23 @@ export default async function DashboardPage() {
                 </Badge>
               </div>
               <CardDescription>
-                Lo que consta hoy en tu listado. El chat puede sugerirte hablar
-                con el médico si algo cambia.
+                Lo que figure en tu registro (nombre, dosis, frecuencia). Hoy
+                el chat agrega <strong className="text-foreground/90">síntomas</strong>
+                a tu historial; la medicación en esta lista aún se carga por otros
+                medios o datos previos, no se guarda sola al hablar con el
+                asistente.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {medications.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Aún no hay medicación cargada. Podés anotarla con tu equipo de
-                  salud o pedirle al chat que te guíe para el próximo control.
+                  Todavía no hay medicación en tu registro. Es el lugar donde
+                  verás lo que el médico te indicó, cuando conste en el sistema.{" "}
+                  <span className="text-foreground/85">
+                    Desde el chat podés anotar síntomas; si querés que también se
+                    guarden las pastillas que te recetaron, sería un próximo paso
+                    de producto.
+                  </span>
                 </p>
               ) : (
                 <ul className="max-h-72 space-y-3 overflow-y-auto pr-1">
