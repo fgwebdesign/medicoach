@@ -29,6 +29,7 @@ Abrir [http://localhost:3000](http://localhost:3000). Healthcheck: [http://local
    - Site URL: `http://localhost:3000` (o tu dominio en producción)
    - Redirect URLs: incluí `http://localhost:3000/auth/callback`
 5. **Email Templates** (opcional): personalizá los emails de confirmación si querés que coincidan con tu marca.
+6. **Límites de Auth (plan gratuito / pruebas):** Supabase limita **signups y envío de correos** por IP y por hora. Si ves error **429** o *"email rate limit exceeded"*, esperá unos minutos, evitá crear muchas cuentas de prueba seguidas o desactivá temporalmente **“Confirm email”** en *Authentication → Providers → Email* solo en desarrollo (no en producción sin analizar el riesgo).
 
 Las tablas tienen **RLS** activado: el paciente solo accede a sus filas (`patient_profiles.id = auth.uid()`). El trigger `handle_new_user()` crea automáticamente el `patient_profile` al registrarse.
 

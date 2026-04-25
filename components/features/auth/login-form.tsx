@@ -10,6 +10,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+/** Mensajes claros para errores de Auth (429 rate limit, red, etc.). */
+function authErrorToastMessage(
+  error: { message: string; status?: number },
+  context: "login" | "signup",
+): string {
+  const m = error.message.toLowerCase();
+  const status = error.status;
+
+  if (
+    status === 429 ||
+    m.includes("rate limit") ||
+    m.includes("too many requests") ||
+    m.includes("email rate limit")
+  ) {
+    return context === "signup"
+      ? "Se alcanzó el límite de registros o de correos enviados (protección de Supabase). Esperá unos minutos, probá con otra red o iniciá sesión si la cuenta ya existe."
+      : "Demasiados intentos. Esperá un minuto y volvé a intentar.";
+  }
+
+  if (
+    m.includes("timeout") ||
+    m.includes("timed out") ||
+    m.includes("network") ||
+    m.includes("failed to fetch")
+  ) {
+    return "Problema de conexión o tiempo de espera agotado. Revisá tu internet e intentá de nuevo.";
+  }
+
+  return error.message;
+}
+
 const fieldLabel = "text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground";
 const inputClass =
   "h-12 rounded-xl border-border/60 bg-background/50 pl-10 pr-3 text-base shadow-sm transition-[box-shadow,background-color] placeholder:text-muted-foreground/60 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20 md:text-sm dark:bg-input/20";
@@ -46,7 +77,7 @@ export function LoginForm() {
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email o contraseña incorrectos.");
         } else {
-          toast.error(error.message);
+          toast.error(authErrorToastMessage(error, "login"));
         }
         return;
       }
@@ -118,7 +149,7 @@ export function LoginForm() {
           toast.error("Este email ya está registrado. Probá iniciar sesión.");
           setActiveTab("login");
         } else {
-          toast.error(error.message);
+          toast.error(authErrorToastMessage(error, "signup"));
         }
         return;
       }
