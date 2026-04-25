@@ -2,12 +2,31 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Loader2, Mic, MicOff, SendHorizonal } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { UIMessage } from "ai";
+import {
+  Loader2,
+  Mic,
+  MicOff,
+  Plus,
+  SendHorizonal,
+  Stethoscope,
+  User,
+} from "lucide-react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { ChatTermsModal } from "@/components/features/chat/chat-terms-modal";
+import { getChatTermsAccepted } from "@/lib/chat/terms-storage";
 import {
   getSpeechRecognitionCtor,
   speechRecognitionErrorMessage,
@@ -15,12 +34,7 @@ import {
   type BrowserSpeechRecognition,
   type SpeechRecognitionResultEvent,
 } from "@/lib/client/speech-recognition";
-
-const SUGGESTED_PROMPTS = [
-  "Hoy tomé metformina y tuve mareos leves, ¿puede ser normal?",
-  "Tengo presión alta y a veces me da tos, ¿a qué puede deberse?",
-  "Quiero registrar que tuve cefalea con severidad 4 desde ayer",
-] as const;
+import type { Locale } from "@/lib/i18n/types";
 
 function messageText(m: { parts?: { type: string; text?: string }[] }) {
   return (
@@ -31,14 +45,93 @@ function messageText(m: { parts?: { type: string; text?: string }[] }) {
   );
 }
 
-export function MediChat() {
+const MessageBubble = memo(function MessageBubble({
+  message: m,
+}: {
+  message: UIMessage;
+}) {
+  const text = messageText(m);
+  const isUser = m.role === "user";
+
+  return (
+    <li
+      className={cn(
+        "group flex w-full gap-3",
+        isUser ? "flex-row-reverse" : "flex-row",
+      )}
+    >
+      <div
+        className={cn(
+          "mt-0.5 flex size-9 shrink-0 select-none items-center justify-center rounded-full",
+          isUser
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "border border-border/50 bg-gradient-to-br from-primary/8 to-muted/80 text-primary shadow-sm",
+        )}
+        title={isUser ? "Vos" : "MediCoach"}
+        aria-label={isUser ? "Your message" : "Assistant message"}
+      >
+        {isUser ? (
+          <User className="size-4" strokeWidth={2.25} aria-hidden />
+        ) : (
+          <Stethoscope className="size-4" strokeWidth={2} aria-hidden />
+        )}
+      </div>
+      <div
+        className={cn(
+          "min-w-0 max-w-[min(100%,30rem)] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm",
+          isUser
+            ? "bg-primary text-primary-foreground"
+            : "border border-border/50 bg-card text-foreground",
+        )}
+      >
+        <div className="whitespace-pre-wrap break-words">{text}</div>
+      </div>
+    </li>
+  );
+});
+
+function recLangForLocale(locale: Locale): string {
+  return locale === "en" ? "en-US" : "es-UY";
+}
+
+function MediChatBody() {
+  const { t, messages: dict, locale } = useLocale();
+  const SUGGESTED = dict.chat.suggested;
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat" }),
-    [],
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({
+          id,
+          messages: msgs,
+          body,
+          trigger,
+          messageId,
+        }) => ({
+          body: {
+            ...(body && typeof body === "object" ? body : {}),
+            id,
+            messages: msgs,
+            trigger,
+            messageId,
+            locale,
+          },
+        }),
+      }),
+    [locale],
   );
 
-  const { messages, sendMessage, status, stop, error } = useChat({
+  const {
+    messages,
+    sendMessage,
+    status,
+    stop,
+    setMessages,
+    error,
+    clearError,
+  } = useChat({
     transport,
+    experimental_throttle: 48,
   });
 
   const busy = status === "streaming" || status === "submitted";
@@ -47,9 +140,29 @@ export function MediChat() {
   const [interim, setInterim] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recRef = useRef<BrowserSpeechRecognition | null>(null);
-  /** Evita mismatch SSR/cliente: en servidor no hay `window` ni Speech API. */
   const [clientReady, setClientReady] = useState(false);
   const canDictate = clientReady && speechRecognitionSupported();
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const startNewConversation = useCallback(() => {
+    if (busy) void stop();
+    setMessages(() => []);
+    setInput("");
+    setVoiceError(null);
+    clearError();
+    try {
+      recRef.current?.abort();
+    } catch {
+      /* ignore */
+    }
+    recRef.current = null;
+    setListening(false);
+    setInterim("");
+  }, [busy, clearError, setMessages, stop]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+  }, [messages, status]);
 
   const stopListening = useCallback(() => {
     try {
@@ -66,16 +179,16 @@ export function MediChat() {
     setVoiceError(null);
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      setVoiceError(
-        "Tu navegador no soporta dictado por voz. Probá Chrome o Edge.",
-      );
+      setVoiceError(t("chat.micBrowserUnsupported"));
       return;
     }
     if (busy) return;
 
+    const lang = recLangForLocale(locale);
+
     try {
       const rec = new Ctor();
-      rec.lang = "es-UY";
+      rec.lang = lang;
       rec.continuous = true;
       rec.interimResults = true;
 
@@ -85,13 +198,14 @@ export function MediChat() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const row = event.results.item(i);
           if (!row?.[0]) continue;
-          const t = row[0].transcript;
-          if (row.isFinal) piece += t;
-          else interimPiece += t;
+          const t0 = row[0].transcript;
+          if (row.isFinal) piece += t0;
+          else interimPiece += t0;
         }
         if (piece) {
           setInput((prev) => {
-            const join = prev && !/\s$/.test(prev) ? `${prev} ${piece}` : `${prev}${piece}`;
+            const join =
+              prev && !/\s$/.test(prev) ? `${prev} ${piece}` : `${prev}${piece}`;
             return join.trimStart();
           });
         }
@@ -115,10 +229,10 @@ export function MediChat() {
       rec.start();
       setListening(true);
     } catch {
-      setVoiceError("No se pudo iniciar el micrófono.");
+      setVoiceError(t("chat.micInitError"));
       setListening(false);
     }
-  }, [busy, stopListening]);
+  }, [busy, stopListening, locale, t]);
 
   useEffect(() => {
     setClientReady(true);
@@ -132,45 +246,51 @@ export function MediChat() {
   }, []);
 
   return (
-    <Card className="flex min-h-[58vh] flex-col overflow-hidden border-border/60 shadow-md">
-      <CardHeader className="space-y-2 border-b border-border/50 bg-muted/20 py-3 sm:py-4">
-        <p className="text-sm text-muted-foreground">
-          Fuentes: principalmente <strong>openFDA</strong> (etiquetas US) y
-          textos de apoyo. <strong>Ante emergencia</strong> (dolor de pecho,
-          falta de aire, desmayo) llamá al servicio de emergencias.
-        </p>
-        {canDictate ? (
-          <p className="text-xs text-muted-foreground/90">
-            <strong>Dictado:</strong> Chrome o Edge. El audio lo procesa el
-            navegador; MediCoach no almacena grabaciones.
+    <div className="flex min-h-[min(72dvh,760px)] flex-col overflow-hidden rounded-2xl border border-border/40 bg-card shadow-md ring-1 ring-black/5 dark:ring-white/10">
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-gradient-to-r from-background via-primary/[0.04] to-background px-3 py-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div
+            className="hidden h-2 w-2 shrink-0 rounded-full bg-primary shadow-[0_0_0_3px] shadow-primary/20 sm:block"
+            aria-hidden
+          />
+          <p className="font-heading truncate text-sm font-semibold text-foreground sm:text-base">
+            {t("chat.todayWithAssistant")}
           </p>
-        ) : null}
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-2 p-0">
-        <ScrollArea className="min-h-[340px] flex-1 px-4 py-4">
+        </div>
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          className="shrink-0 gap-1.5 rounded-full px-3.5 text-xs sm:text-sm"
+          onClick={startNewConversation}
+        >
+          <Plus className="size-3.5" aria-hidden />
+          <span className="hidden sm:inline">{t("chat.newChat")}</span>
+          <span className="sm:hidden">{t("chat.newChatShort")}</span>
+        </Button>
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ScrollArea className="min-h-[300px] flex-1 px-3 py-3 sm:min-h-[380px] sm:px-5 sm:py-5">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-6 py-2 text-center">
-              <div className="max-w-md space-y-1">
-                <p className="text-base font-medium text-foreground">
-                  Empezá con un mensaje
+            <div className="mx-auto flex max-w-xl flex-col items-center gap-5 py-2 text-center sm:py-4">
+              <p className="font-heading text-lg font-semibold text-foreground sm:text-xl">
+                {t("chat.howTodayTitle")}
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t("chat.howTodaySubtitle")}
+              </p>
+              <div className="w-full space-y-2.5 text-left">
+                <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+                  {t("chat.ideaPrompts")}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Podés tocar un ejemplo o escribir vos: síntomas, medicación o
-                  dudas generales. Si iniciaste sesión, el asistente puede
-                  registrar en tu historial.
-                </p>
-              </div>
-              <div className="flex w-full max-w-lg flex-col gap-2 sm:items-stretch">
-                <p className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Ideas para probar
-                </p>
-                <ul className="flex flex-col gap-2">
-                  {SUGGESTED_PROMPTS.map((text) => (
+                <ul className="flex flex-col gap-2 sm:gap-2.5">
+                  {SUGGESTED.map((text) => (
                     <li key={text}>
                       <Button
                         type="button"
                         variant="secondary"
-                        className="h-auto w-full justify-start whitespace-normal text-left text-sm font-normal"
+                        className="h-auto w-full justify-start rounded-xl border border-border/50 bg-background/90 py-2.5 text-left text-sm font-normal leading-snug text-foreground shadow-none transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:shadow-sm"
                         onClick={() => {
                           if (busy) return;
                           void sendMessage({ text });
@@ -185,36 +305,32 @@ export function MediChat() {
               </div>
             </div>
           ) : null}
-          <ul className="flex flex-col gap-3">
-            {messages.map((m) => (
-              <li
-                key={m.id}
-                className={
-                  m.role === "user"
-                    ? "ml-0 sm:ml-8 rounded-2xl border border-primary/15 bg-primary/10 px-4 py-3 text-sm shadow-sm"
-                    : "mr-0 sm:mr-8 rounded-2xl border border-border/80 bg-card px-4 py-3 text-sm shadow-sm"
-                }
-              >
-                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {m.role === "user" ? "Vos" : "MediCoach"}
-                </span>
-                <div className="whitespace-pre-wrap leading-relaxed">
-                  {messageText(m)}
-                </div>
-              </li>
-            ))}
-          </ul>
+
+          {messages.length > 0 ? (
+            <ul className="mx-auto flex max-w-2xl flex-col gap-5 pb-2 sm:px-0">
+              {messages.map((m) => (
+                <MessageBubble key={m.id} message={m} />
+              ))}
+            </ul>
+          ) : null}
+          <div ref={endRef} className="h-px" aria-hidden />
         </ScrollArea>
+
         {error ? (
-          <p className="px-4 text-sm text-destructive">{error.message}</p>
+          <p className="px-3 pb-1 text-sm text-destructive sm:px-4">
+            {error.message}
+          </p>
         ) : null}
         {voiceError ? (
-          <p className="px-4 text-sm text-destructive">{voiceError}</p>
+          <p className="px-3 pb-1 text-sm text-destructive sm:px-4">
+            {voiceError}
+          </p>
         ) : null}
-      </CardContent>
-      <CardFooter className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
+      </div>
+
+      <div className="border-t border-border/50 bg-gradient-to-b from-background to-muted/20 p-3 sm:p-4">
         <form
-          className="flex w-full flex-col gap-2 sm:flex-row sm:items-center"
+          className="mx-auto flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-end"
           onSubmit={(e) => {
             e.preventDefault();
             const text = input.trim();
@@ -223,31 +339,27 @@ export function MediChat() {
             setInput("");
           }}
         >
-          <div className="flex flex-1 gap-2">
+          <div className="flex w-full min-w-0 flex-1 gap-2">
             <Input
               name="msg"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribí o dictá cómo te sentís…"
+              placeholder={t("chat.inputPlaceholder")}
               disabled={busy || listening}
               autoComplete="off"
-              className="flex-1"
-              aria-label="Mensaje para MediCoach"
+              className="h-12 flex-1 rounded-xl border-border/60 bg-background/80"
+              aria-label={t("chat.inputAria")}
             />
             <Button
               type="button"
               variant={listening ? "secondary" : "outline"}
               size="icon"
+              className="h-12 w-12 shrink-0 rounded-xl"
               disabled={busy || !canDictate}
               onClick={() => (listening ? stopListening() : startListening())}
               aria-pressed={listening}
-              aria-label={listening ? "Detener dictado" : "Dictar por voz"}
-              title={
-                canDictate
-                  ? listening
-                    ? "Detener dictado"
-                    : "Dictar por voz"
-                  : "Dictado no disponible"
+              aria-label={
+                listening ? t("chat.stopDictation") : t("chat.startDictation")
               }
             >
               {listening ? (
@@ -256,31 +368,92 @@ export function MediChat() {
                 <Mic className="size-4" aria-hidden />
               )}
             </Button>
-            <Button type="submit" disabled={busy || listening || !input.trim()}>
+            <Button
+              type="submit"
+              className="h-12 w-12 shrink-0 rounded-xl"
+              size="icon"
+              disabled={busy || listening || !input.trim()}
+            >
               {busy ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden />
               ) : (
                 <SendHorizonal className="size-4" aria-hidden />
               )}
-              <span className="sr-only">Enviar</span>
+              <span className="sr-only">{t("chat.send")}</span>
             </Button>
           </div>
           {listening && interim ? (
-            <p className="text-xs text-muted-foreground sm:order-last sm:basis-full">
-              Escuchando: {interim}
+            <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
+              {t("chat.listening")}
+              {interim}
             </p>
           ) : listening ? (
-            <p className="text-xs text-muted-foreground sm:order-last sm:basis-full">
-              Escuchando… hablá y tocá el micrófono otra vez para cortar.
+            <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
+              {t("chat.listeningHelp")}
             </p>
           ) : null}
         </form>
         {busy ? (
-          <Button type="button" variant="outline" size="sm" onClick={() => void stop()}>
-            Detener
-          </Button>
+          <div className="mx-auto mt-2 flex max-w-2xl justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void stop()}
+            >
+              {t("chat.stopGenerating")}
+            </Button>
+          </div>
         ) : null}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
+  );
+}
+
+function MediChatLoadingShell() {
+  const { t } = useLocale();
+  return (
+    <div
+      className="flex min-h-[min(72dvh,760px)] flex-col items-center justify-center overflow-hidden rounded-2xl border border-border/40 bg-card px-4 py-12 text-sm text-muted-foreground shadow-md ring-1 ring-black/5 dark:ring-white/10"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        className="mb-3 size-8 animate-spin text-primary"
+        aria-hidden
+      />
+      {t("common.loading")}
+    </div>
+  );
+}
+
+export function MediChat() {
+  const [terms, setTerms] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setTerms(getChatTermsAccepted());
+  }, []);
+
+  if (terms === null) {
+    return <MediChatLoadingShell />;
+  }
+
+  return (
+    <>
+      <ChatTermsModal
+        open={!terms}
+        onAccepted={() => setTerms(true)}
+      />
+      <div
+        className={cn(
+          "transition-opacity duration-200",
+          !terms && "pointer-events-none select-none opacity-35",
+        )}
+        inert={!terms}
+        aria-hidden={!terms}
+      >
+        <MediChatBody />
+      </div>
+    </>
   );
 }

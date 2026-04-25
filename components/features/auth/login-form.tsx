@@ -45,7 +45,11 @@ const fieldLabel = "text-xs font-semibold uppercase tracking-[0.12em] text-muted
 const inputClass =
   "h-12 rounded-xl border-border/60 bg-background/50 pl-10 pr-3 text-base shadow-sm transition-[box-shadow,background-color] placeholder:text-muted-foreground/60 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20 md:text-sm dark:bg-input/20";
 
-export function LoginForm() {
+export function LoginForm({
+  afterAuthPath = "/dashboard",
+}: {
+  afterAuthPath?: string;
+}) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -83,7 +87,7 @@ export function LoginForm() {
       }
 
       toast.success("Bienvenido a MediCoach");
-      window.location.href = "/dashboard";
+      window.location.href = afterAuthPath;
     } catch (err) {
       const msg =
         err instanceof Error
@@ -157,7 +161,7 @@ export function LoginForm() {
       // Con "Confirmar email" desactivado (p. ej. hackathon) Supabase devuelve sesión y el usuario queda listo.
       if (data.session) {
         toast.success("Cuenta creada. Bienvenido a MediCoach");
-        window.location.href = "/dashboard";
+        window.location.href = afterAuthPath;
         return;
       }
 

@@ -7,7 +7,10 @@ import {
 import { aiGatewayEnabled } from "@/lib/medicoach/ai/env";
 import { resolveChatModel } from "@/lib/medicoach/ai/models";
 import { createMediCoachTools } from "@/lib/medicoach/agent/chat-tools";
-import { MEDICOACH_SYSTEM_PROMPT } from "@/lib/medicoach/agent/prompts";
+import {
+  formatPatternContext,
+  getMediCoachSystemPrompt,
+} from "@/lib/medicoach/agent/prompts";
 import { detectPatterns } from "@/lib/medicoach/patterns";
 import { createClient } from "@/lib/integrations/supabase/server";
 import {
@@ -101,7 +104,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages: rawMessages, sessionId } = parsed.data;
+  const { messages: rawMessages, sessionId, locale } = parsed.data;
   const messages = normalizeToUiMessages(rawMessages);
 
   const supabase = await createClient();
@@ -109,28 +112,28 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Detección de patrones inyectada al system prompt como contexto extra
+  if (!user) {
+    return Response.json(
+      {
+        error:
+          "Necesitás iniciar sesión para usar el chat. Entrá a MediCoach, creá una cuenta o accedé con tu email.",
+      },
+      { status: 401 },
+    );
+  }
+
+  // Detección de patrones inyectada al system prompt
   let patternContext = "";
-  if (user?.id) {
+  if (user.id) {
     try {
       const patterns = await detectPatterns(user.id);
-      if (patterns.length > 0) {
-        patternContext =
-          `\n\nALERTAS DETECTADAS EN ESTE PACIENTE:\n` +
-          patterns
-            .map(
-              (p) =>
-                `- "${p.sintoma}" reportado ${p.count} veces en últimos 5 días (severidad promedio ${p.severidadPromedio.toFixed(1)})`,
-            )
-            .join("\n") +
-          `\nMencioná estas alertas naturalmente en tu respuesta si son relevantes.`;
-      }
+      patternContext = formatPatternContext(patterns, locale);
     } catch (err) {
       console.error("[chat] detectPatterns error:", err);
     }
   }
 
-  const tools = createMediCoachTools({ patientId: user?.id });
+  const tools = createMediCoachTools({ patientId: user.id, locale });
   let modelMessages;
   try {
     modelMessages = await convertToModelMessages(messages, { tools });
@@ -146,12 +149,11 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: resolveChatModel(),
-    system: MEDICOACH_SYSTEM_PROMPT + patternContext,
+    system: getMediCoachSystemPrompt(locale) + patternContext,
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(8),
     onFinish: async ({ text }) => {
-      if (!user?.id) return;
       try {
         const snap = uiMessagesToSnapshot(messages);
         snap.push({ role: "assistant", content: text });
