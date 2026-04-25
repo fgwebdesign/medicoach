@@ -131,7 +131,7 @@ export function LoginForm() {
     try {
       const supabase = createClient();
       const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || window.location.origin;
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: trimmedEmail,
         password: trimmedPassword,
         options: {
@@ -154,9 +154,14 @@ export function LoginForm() {
         return;
       }
 
-      toast.success(
-        "Cuenta creada. Revisá tu correo para confirmar tu email.",
-      );
+      // Con "Confirmar email" desactivado (p. ej. hackathon) Supabase devuelve sesión y el usuario queda listo.
+      if (data.session) {
+        toast.success("Cuenta creada. Bienvenido a MediCoach");
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      toast.success("Cuenta creada. Revisá tu correo para confirmar tu email.");
       setFirstName("");
       setLastName("");
       setPhone("");
