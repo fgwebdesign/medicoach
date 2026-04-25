@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
@@ -57,6 +58,7 @@ export function LoginForm({
   /** Página con fondo oscuro (login marketing). */
   onDark?: boolean;
 }) {
+  const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -94,7 +96,8 @@ export function LoginForm({
       }
 
       toast.success("Bienvenido a MediCoach");
-      window.location.href = afterAuthPath;
+      void router.replace(afterAuthPath);
+      router.refresh();
     } catch (err) {
       const msg =
         err instanceof Error
@@ -168,7 +171,8 @@ export function LoginForm({
       // Con "Confirmar email" desactivado (p. ej. hackathon) Supabase devuelve sesión y el usuario queda listo.
       if (data.session) {
         toast.success("Cuenta creada. Bienvenido a MediCoach");
-        window.location.href = afterAuthPath;
+        void router.replace(afterAuthPath);
+        router.refresh();
         return;
       }
 

@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MediChat } from "@/components/features/chat/medichat";
 import { ChatLoginRequired } from "@/components/features/chat/chat-login-required";
@@ -5,7 +6,11 @@ import { ChatGuidanceSidebar } from "@/components/features/chat/chat-guidance-si
 import { createClient } from "@/lib/integrations/supabase/server";
 import { cn } from "@/lib/utils";
 
+/** Evita RSC en caché de visitas anónimas (link prefetch) con usuario ya logueado. */
+export const dynamic = "force-dynamic";
+
 export default async function ChatPage() {
+  noStore();
   const supabase = await createClient();
   const {
     data: { user },

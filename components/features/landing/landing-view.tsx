@@ -222,7 +222,7 @@ export function LandingView() {
                     asChild
                     className="h-12 w-full min-w-0 flex-1 gap-2 rounded-full border-0 bg-primary text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 sm:h-12 sm:text-base"
                   >
-                    <Link href="/chat">
+                    <Link href="/chat" prefetch={false}>
                       Ir al chat
                       <MessageCircle className="size-4" aria-hidden />
                     </Link>
@@ -277,6 +277,7 @@ export function LandingView() {
             <motion.div variants={itemVariant(reduce, 20)} className="h-full">
               <Link
                 href="/chat"
+                prefetch={false}
                 className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:ring-white/5 dark:backdrop-blur-sm dark:hover:border-primary/35"
               >
                 <div className="space-y-2">
@@ -299,6 +300,7 @@ export function LandingView() {
             <motion.div variants={itemVariant(reduce, 20)} className="h-full">
               <Link
                 href="/dashboard"
+                prefetch={false}
                 className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-sm ring-1 ring-black/5 transition hover:border-primary/30 hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:ring-white/5 dark:backdrop-blur-sm dark:hover:border-primary/35"
               >
                 <div className="space-y-2">
@@ -445,7 +447,7 @@ export function LandingView() {
                 cuando puedas. La idea es acompañarte, no llenarte de tareas.
               </p>
               <Button asChild className="mt-8 gap-2" size="lg">
-                <Link href="/chat">
+                <Link href="/chat" prefetch={false}>
                   Probar en el chat
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>

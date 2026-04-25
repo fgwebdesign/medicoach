@@ -90,7 +90,11 @@ export function ReportPageActions({ isLoggedIn }: Props) {
             <>
               <p className="text-sm text-muted-foreground">
                 Seguís sumando notas en{" "}
-                <Link href="/chat" className="font-medium text-primary underline-offset-4 hover:underline">
+                <Link
+                  href="/chat"
+                  prefetch={false}
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
                   Chat
                 </Link>
                 ; cada descarga toma un snapshot actual.

@@ -1,9 +1,13 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MarketingPageMain } from "@/components/layout/marketing-page-main";
 import { createClient } from "@/lib/integrations/supabase/server";
 import { ReportPageActions } from "./report-page-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReportPage() {
+  noStore();
   const supabase = await createClient();
   const {
     data: { user },

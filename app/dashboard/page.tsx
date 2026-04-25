@@ -22,12 +22,16 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "@/lib/integrations/supabase/server";
 import { detectPatternsWithClient } from "@/lib/medicoach/patterns";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
+  noStore();
   const supabase = await createClient();
   const {
     data: { user },
@@ -94,7 +98,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <Button asChild className="shrink-0 gap-2 rounded-xl shadow-md shadow-primary/15">
-            <Link href="/chat">
+            <Link href="/chat" prefetch={false}>
               Hablar con MediCoach
               <MessageCircle className="size-4" aria-hidden />
             </Link>
@@ -146,7 +150,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <Button size="sm" className="rounded-lg" asChild>
-                <Link href="/chat">Abrir chat</Link>
+                <Link href="/chat" prefetch={false}>Abrir chat</Link>
               </Button>
             </CardContent>
           </Card>
@@ -160,7 +164,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <Button size="sm" variant="outline" className="rounded-lg" asChild>
-                <Link href="/report">Ver reporte</Link>
+                <Link href="/report" prefetch={false}>Ver reporte</Link>
               </Button>
             </CardContent>
           </Card>
@@ -330,7 +334,7 @@ export default async function DashboardPage() {
             variant="secondary"
             className="gap-2 rounded-xl border border-border/60 bg-card text-foreground shadow-sm hover:bg-muted dark:border-white/10 dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
           >
-            <Link href="/report">
+            <Link href="/report" prefetch={false}>
               Generar / ver reporte
               <ArrowRight className="size-4" aria-hidden />
             </Link>

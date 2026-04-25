@@ -12,6 +12,7 @@ import {
   Stethoscope,
   User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   memo,
   useCallback,
@@ -46,6 +47,26 @@ import {
 import type { Locale } from "@/lib/i18n/types";
 
 const emptySubscribe = () => () => {};
+
+/** Evita mostrar JSON crudo cuando el API devuelve { error: "..." }. */
+function friendlyChatApiError(raw: string): string {
+  const t = raw.trim();
+  if (t.startsWith("{") && t.includes("error")) {
+    try {
+      const j = JSON.parse(t) as { error?: string };
+      if (j.error?.includes("iniciar sesión") || j.error?.includes("sesión")) {
+        return "El servidor no recibió tu sesión (cookies). Recargá la página (F5) o volvé a iniciar sesión.";
+      }
+      if (j.error) return j.error;
+    } catch {
+      /* seguir */
+    }
+  }
+  if (t.includes("Necesitás iniciar sesión")) {
+    return "Necesitás iniciar sesión o recargar la página para que el chat reciba la sesión.";
+  }
+  return t;
+}
 
 /** Necesitamos "solo cliente" para dictado sin setState en un effect. */
 function useIsClient() {
@@ -126,6 +147,7 @@ function recLangForLocale(locale: Locale): string {
 
 function MediChatBody() {
   const { t, messages: dict, locale } = useLocale();
+  const router = useRouter();
   const SUGGESTED = dict.chat.suggested;
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessionBoot, setSessionBoot] = useState(false);
@@ -172,6 +194,17 @@ function MediChatBody() {
     transport,
     experimental_throttle: 48,
   });
+
+  useEffect(() => {
+    if (!error?.message) return;
+    if (
+      error.message.includes("iniciar sesión") ||
+      error.message.includes("Necesitás") ||
+      error.message.includes("No autenticado")
+    ) {
+      void router.refresh();
+    }
+  }, [error, router]);
 
   const [reportOpen, setReportOpen] = useState(false);
   const [reportNonce, setReportNonce] = useState(0);
@@ -540,7 +573,7 @@ function MediChatBody() {
 
         {error ? (
           <p className="px-3 pb-1 text-sm text-destructive sm:px-4">
-            {error.message}
+            {friendlyChatApiError(error.message ?? "")}
           </p>
         ) : null}
         {voiceError ? (
