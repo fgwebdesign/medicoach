@@ -21,7 +21,7 @@ type ChatTermsModalProps = {
 };
 
 /**
- * Términos iniciales: texto breve, openFDA con marca visual, aceptación obligatoria.
+ * Términos iniciales: aceptación obligatoria antes del chat.
  * No se puede cerrar con Escape ni clic afuera hasta aceptar.
  */
 export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
@@ -92,26 +92,15 @@ export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
               {t("terms.fdaTitle")}
             </p>
             <div
-              className="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:justify-center sm:gap-4"
+              className="mt-3 space-y-2 text-sm leading-snug text-foreground/90 sm:text-base"
               lang={locale === "en" ? "en" : "es"}
             >
-              <div className="h-10 w-44 shrink-0 sm:h-12 sm:w-52">
-                <img
-                  src="/brand/fda-openfda.svg"
-                  alt="openFDA, U.S. FDA public data"
-                  className="h-full w-full object-contain"
-                  width={200}
-                  height={64}
-                />
-              </div>
-              <p className="min-w-0 text-center text-sm leading-snug text-foreground/90 sm:max-w-[16rem] sm:text-left sm:text-sm">
-                {t("terms.fdaLine")}
+              <p className="text-center sm:text-left">{t("terms.fdaLine")}</p>
+              <p className="text-center text-[11px] text-muted-foreground sm:text-left sm:text-xs">
+                {t("terms.fdaAttribution")}
               </p>
             </div>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground sm:text-xs">
-              {t("terms.fdaAttribution")}
-            </p>
-            <p className="mt-2 text-center text-xs text-muted-foreground sm:text-left">
+            <p className="mt-3 text-center text-xs text-muted-foreground sm:text-left">
               {t("terms.micDetail")}
             </p>
           </div>
