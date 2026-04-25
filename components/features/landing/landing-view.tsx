@@ -151,7 +151,7 @@ export function LandingView() {
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_20%_0%,oklch(0.42_0.1_175/0.22),transparent_55%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_0%,oklch(0.42_0.1_175/0.22),transparent_55%)]"
           aria-hidden
         />
         <div
@@ -160,7 +160,7 @@ export function LandingView() {
         />
 
         <div
-          className="relative z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 pb-12 pt-[6vh] sm:px-6 sm:pb-16 sm:pt-[7vh] lg:px-10"
+          className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 pb-12 pt-[6vh] sm:px-6 sm:pb-16 sm:pt-[7vh] lg:px-10"
         >
           <motion.div
             className="mx-auto flex w-full max-w-2xl flex-col items-center gap-9 sm:gap-10"

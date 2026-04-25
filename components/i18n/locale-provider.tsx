@@ -26,8 +26,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setLocaleState(readStoredLocale());
-    setReady(true);
+    const t = setTimeout(() => {
+      setLocaleState(readStoredLocale());
+      setReady(true);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   const setLocale = useCallback((l: Locale) => {

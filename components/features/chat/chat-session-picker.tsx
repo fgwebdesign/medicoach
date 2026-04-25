@@ -51,7 +51,12 @@ export function ChatSessionPicker({
   }, []);
 
   useEffect(() => {
-    if (open) void load();
+    if (!open) return;
+    // Evitar setState síncrono dentro del effect (regla react-hooks/set-state-in-effect)
+    const t = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(t);
   }, [open, load, refreshKey]);
 
   return (
