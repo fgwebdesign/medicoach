@@ -1,7 +1,11 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/integrations/supabase/admin";
-import { fetchDrugLabel } from "@/lib/medicoach/fda/client";
+import {
+  fetchDrugInteractions,
+  fetchDrugLabel,
+} from "@/lib/medicoach/fda/client";
+import { mentionsDrug } from "@/lib/medicoach/fda/interactions";
 import medicalKnowledge from "@/data/medical-knowledge.json";
 
 interface ToolContext {
@@ -33,6 +37,44 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
         } catch (e) {
           return { error: String(e), nombre };
         }
+      },
+    }),
+
+    detectar_interacciones: tool({
+      description:
+        "Verifica si dos medicamentos tienen interacciones conocidas consultando openFDA (sección drug_interactions).",
+      inputSchema: z.object({
+        medicamento1: z.string(),
+        medicamento2: z.string(),
+      }),
+      execute: async ({ medicamento1, medicamento2 }) => {
+        const [label1, label2] = await Promise.all([
+          fetchDrugInteractions(medicamento1),
+          fetchDrugInteractions(medicamento2),
+        ]);
+
+        const warnings1 =
+          "error" in label1 ? "" : (label1.drug_interactions ?? "");
+        const warnings2 =
+          "error" in label2 ? "" : (label2.drug_interactions ?? "");
+
+        const interaccion =
+          mentionsDrug(warnings1, medicamento2) ||
+          mentionsDrug(warnings2, medicamento1);
+
+        const detailFrom = (label: typeof label1, warnings: string) => {
+          if ("error" in label) return `Error openFDA: ${label.error}`.slice(0, 400);
+          return warnings.slice(0, 400) || "Sin datos de interacciones en FDA";
+        };
+
+        return {
+          medicamento1,
+          medicamento2,
+          interaccion_detectada: interaccion,
+          detalle1: detailFrom(label1, warnings1),
+          detalle2: detailFrom(label2, warnings2),
+          fuente: "openFDA Drug Label",
+        };
       },
     }),
 

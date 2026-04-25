@@ -12,7 +12,11 @@
 import { z } from "zod";
 import { createMcpHandler } from "mcp-handler";
 import medicalKnowledge from "@/data/medical-knowledge.json";
-import { fetchDrugLabel } from "@/lib/medicoach/fda/client";
+import {
+  fetchDrugInteractions,
+  fetchDrugLabel,
+} from "@/lib/medicoach/fda/client";
+import { mentionsDrug } from "@/lib/medicoach/fda/interactions";
 
 export const maxDuration = 60;
 
@@ -21,6 +25,11 @@ const toolMeta = {
     title: "Consultar medicamento",
     description:
       "Información oficial (openFDA) sobre un fármaco: efectos adversos, contraindicaciones, dosis.",
+  },
+  detectar_interacciones: {
+    title: "Detectar interacciones",
+    description:
+      "Verifica si dos medicamentos tienen interacciones conocidas consultando openFDA (sección drug_interactions).",
   },
   buscar_conocimiento: {
     title: "Buscar conocimiento",
@@ -65,6 +74,53 @@ const mcp = createMcpHandler(
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(data, null, 0) },
+          ],
+        };
+      },
+    );
+
+    server.registerTool(
+      "detectar_interacciones",
+      {
+        title: toolMeta.detectar_interacciones.title,
+        description: toolMeta.detectar_interacciones.description,
+        inputSchema: {
+          medicamento1: z.string().describe("Primer medicamento (ej. warfarin)"),
+          medicamento2: z.string().describe("Segundo medicamento (ej. ibuprofen)"),
+        },
+      },
+      async ({ medicamento1, medicamento2 }) => {
+        const [label1, label2] = await Promise.all([
+          fetchDrugInteractions(medicamento1),
+          fetchDrugInteractions(medicamento2),
+        ]);
+
+        const warnings1 =
+          "error" in label1 ? "" : (label1.drug_interactions ?? "");
+        const warnings2 =
+          "error" in label2 ? "" : (label2.drug_interactions ?? "");
+
+        const interaccion =
+          mentionsDrug(warnings1, medicamento2) ||
+          mentionsDrug(warnings2, medicamento1);
+
+        const detailFrom = (label: typeof label1, warnings: string) => {
+          if ("error" in label) return `Error openFDA: ${label.error}`.slice(0, 400);
+          return warnings.slice(0, 400) || "Sin datos de interacciones en FDA";
+        };
+
+        const result = {
+          medicamento1,
+          medicamento2,
+          interaccion_detectada: interaccion,
+          detalle1: detailFrom(label1, warnings1),
+          detalle2: detailFrom(label2, warnings2),
+          fuente: "openFDA Drug Label",
+        };
+
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 0) },
           ],
         };
       },
@@ -122,6 +178,24 @@ export async function GET() {
             nombre: { type: "string", description: "Nombre del medicamento" },
           },
           required: ["nombre"],
+        },
+      },
+      {
+        name: "detectar_interacciones",
+        ...toolMeta.detectar_interacciones,
+        inputSchema: {
+          type: "object",
+          properties: {
+            medicamento1: {
+              type: "string",
+              description: "Primer medicamento",
+            },
+            medicamento2: {
+              type: "string",
+              description: "Segundo medicamento",
+            },
+          },
+          required: ["medicamento1", "medicamento2"],
         },
       },
       {

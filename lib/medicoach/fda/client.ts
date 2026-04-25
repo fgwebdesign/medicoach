@@ -15,6 +15,10 @@ export type DrugLabelDetail = {
   fuente: string;
 } | { error: string; nombre: string };
 
+export type DrugInteractionsDetail =
+  | { nombre: string; drug_interactions?: string; fuente: string }
+  | { error: string; nombre: string };
+
 /**
  * Resumen corto desde openFDA (etiquetas US). Opcional `OPENFDA_API_KEY` para cuota.
  */
@@ -164,6 +168,74 @@ export async function fetchDrugLabel(
     efectos_adversos: clip(label.adverse_reactions?.[0], 600),
     contraindicaciones: clip(label.contraindications?.[0], 400),
     dosis: clip(label.dosage_and_administration?.[0], 400),
+    fuente: "FDA Drug Label (openFDA)",
+  };
+}
+
+/**
+ * Obtiene la sección `drug_interactions` desde openFDA Drug Label.
+ * Útil para detectar menciones cruzadas entre medicamentos.
+ */
+export async function fetchDrugInteractions(
+  genericName: string,
+): Promise<DrugInteractionsDetail> {
+  const term = genericName.trim().toLowerCase();
+  if (!term) {
+    return { error: "Nombre vacío", nombre: term };
+  }
+
+  const search = `openfda.generic_name:${term}`;
+  const params = new URLSearchParams({
+    search,
+    limit: "1",
+  });
+  const key = process.env.OPENFDA_API_KEY;
+  if (key) params.set("api_key", key);
+
+  const url = `${FDA_BASE}?${params.toString()}`;
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), 12_000);
+  let res: Response;
+  try {
+    res = await fetch(url, { signal: ac.signal, next: { revalidate: 3600 } });
+  } finally {
+    clearTimeout(t);
+  }
+
+  if (res.status === 429) {
+    return {
+      error: "openFDA rate limit. Probá más tarde o configurá OPENFDA_API_KEY",
+      nombre: term,
+    };
+  }
+  if (!res.ok) {
+    return {
+      error: `Error HTTP ${res.status} de openFDA`,
+      nombre: term,
+    };
+  }
+
+  const json = (await res.json()) as {
+    results?: Array<{
+      drug_interactions?: string[];
+    }>;
+  };
+
+  const label = json.results?.[0];
+  if (!label) {
+    return {
+      error: "No se encontró información oficial",
+      nombre: term,
+    };
+  }
+
+  const text =
+    (label.drug_interactions?.[0] ?? "").replace(/\s+/g, " ").trim() ||
+    undefined;
+
+  return {
+    nombre: term,
+    drug_interactions: text,
     fuente: "FDA Drug Label (openFDA)",
   };
 }
