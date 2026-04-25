@@ -42,6 +42,7 @@ export type MessageDictionary = {
     checkbox: string;
     cta: string;
     fdaAttribution: string;
+    fdaLogoAlt: string;
   };
   sidebar: {
     aria: string;
@@ -107,6 +108,7 @@ const en: MessageDictionary = {
       "I have read the above, including that this is for education only and is not a diagnosis or a substitute for professional care, and I agree to use MediCoach under those terms.",
     cta: "Continue to chat",
     fdaAttribution: "U.S. Food & Drug Administration (open data)",
+    fdaLogoAlt: "U.S. Food and Drug Administration seal",
   },
   sidebar: {
     aria: "How to use the chat",
@@ -174,6 +176,7 @@ const es: MessageDictionary = {
       "Leí lo anterior, incluido que esto es educativo y no constituye diagnóstico ni reemplaza la atención profesional, y acepto usar MediCoach bajo esas condiciones.",
     cta: "Entrar al chat",
     fdaAttribution: "U.S. Food and Drug Administration (datos abiertos)",
+    fdaLogoAlt: "Sello de la Administración de Alimentos y Medicamentos de EE. UU. (FDA)",
   },
   sidebar: {
     aria: "Guía de uso del chat",

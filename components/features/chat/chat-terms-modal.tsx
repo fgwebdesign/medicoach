@@ -92,13 +92,27 @@ export function ChatTermsModal({ open, onAccepted }: ChatTermsModalProps) {
               {t("terms.fdaTitle")}
             </p>
             <div
-              className="mt-3 space-y-2 text-sm leading-snug text-foreground/90 sm:text-base"
+              className="mt-3 flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-4"
               lang={locale === "en" ? "en" : "es"}
             >
-              <p className="text-center sm:text-left">{t("terms.fdaLine")}</p>
-              <p className="text-center text-[11px] text-muted-foreground sm:text-left sm:text-xs">
-                {t("terms.fdaAttribution")}
-              </p>
+              <figure className="flex shrink-0 flex-col items-center gap-1.5 sm:items-start">
+                <div className="rounded-xl border border-border/50 bg-background/60 p-2.5 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                  <img
+                    src="/Logo_of_the_United_States_Food_and_Drug_Administration.svg"
+                    alt={t("terms.fdaLogoAlt")}
+                    width={160}
+                    height={80}
+                    className="mx-auto h-12 w-auto max-w-[200px] object-contain sm:h-14"
+                    loading="eager"
+                  />
+                </div>
+                <figcaption className="max-w-[200px] text-center text-[10px] leading-tight text-muted-foreground sm:text-left">
+                  {t("terms.fdaAttribution")}
+                </figcaption>
+              </figure>
+              <div className="min-w-0 flex-1 space-y-2 text-sm leading-snug text-foreground/90 sm:text-base">
+                <p className="text-center sm:text-left">{t("terms.fdaLine")}</p>
+              </div>
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground sm:text-left">
               {t("terms.micDetail")}
