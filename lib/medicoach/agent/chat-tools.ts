@@ -195,15 +195,16 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
 
     generar_url_reporte: tool({
       description: en
-        ? "Get the in-app report URL the user can open or show to a clinician. Use when they ask for a summary or printable report."
-        : "Genera el link al reporte PDF que el paciente puede descargar para llevar a su médico. Usalo cuando el paciente pida un resumen o reporte.",
+        ? "Starts the in-app PDF report flow (progress panel + download). Use when they ask for a summary, a PDF, or something to show their clinician. The app opens the same UI as the “Reporte PDF” button in chat."
+        : "Inicia el flujo de reporte en la app: panel con pasos y descarga de PDF. Usalo si piden resumen, PDF, informe, o qué llevar al médico. Se abre el mismo asistente que el botón «Reporte PDF» en el chat.",
       inputSchema: z.object({}),
       execute: async () => {
         return {
           url: "/report",
+          abrirAsistenteDescarga: true,
           mensaje: en
-            ? "Open /report in MediCoach to download or share a summary with your clinician"
-            : "Reporte listo para descargar en /report — podés compartirlo con tu médico",
+            ? "I’m opening the on-screen report assistant. You’ll see the steps and the PDF will download when ready. You can also use the “Reporte PDF” (Report PDF) button in the chat bar."
+            : "Abrí el asistente de reporte: vas a ver el progreso y se baja el PDF. Si no se abre el panel, tocá el botón «Reporte PDF» en la barra arriba del chat.",
         };
       },
     }),

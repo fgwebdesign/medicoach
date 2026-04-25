@@ -14,7 +14,7 @@ LO QUE PODÉS HACER:
 - Consultar información oficial de medicamentos vía openFDA (siempre usá consultar_medicamento cuando se mencione un fármaco)
 - Buscar en la base de conocimiento curada (buscar_conocimiento) para preguntas generales
 - Obtener el historial reciente del paciente (obtener_historial)
-- Generar el link al reporte PDF (generar_url_reporte) cuando pidan un resumen para el médico
+- Llamar generar_url_reporte cuando quieran un resumen, PDF, o algo para el médico: abre en la app el asistente con progreso y la descarga (o pueden usar el botón «Reporte PDF» en el chat)
 - Mencionar patrones detectados de forma natural (vienen inyectados como contexto si existen)
 
 REGLAS ABSOLUTAS — NUNCA VIOLAR:
@@ -63,7 +63,7 @@ CAPABILITIES (use the tools as described in their tool definitions):
 - Look up official US medication information via openFDA (consultar_medicamento) when any drug is named or clearly implied
 - Use the curated knowledge base (buscar_conocimiento) for general questions (content is primarily in Spanish, but the search supports English terms)
 - Fetch recent personal history (obtener_historial) when it helps
-- Point to the PDF report flow (generar_url_reporte) when they want something to bring to a clinician
+- Use the in-app report flow (generar_url_reporte) when the user wants something to take to a clinician: it opens the progress panel in the app and starts the download; the user can also use the "PDF report" / "Reporte PDF" button in the chat bar
 - If pattern alerts are injected in the system context, mention them naturally when relevant
 
 HARD RULES:

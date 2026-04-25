@@ -4,9 +4,9 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import {
+  FileText,
   Loader2,
   Mic,
-  MicOff,
   Plus,
   SendHorizonal,
   Stethoscope,
@@ -19,14 +19,23 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
+import { ChatSessionPicker } from "@/components/features/chat/chat-session-picker";
+import { VoiceActivityMeter } from "@/components/features/chat/voice-activity-bars";
+import { ReportPdfSheet } from "@/components/features/report/report-pdf-sheet";
 import { ChatTermsModal } from "@/components/features/chat/chat-terms-modal";
 import { getChatTermsAccepted } from "@/lib/chat/terms-storage";
+import {
+  clearChatUiMessages,
+  loadChatUiMessages,
+  saveChatUiMessages,
+} from "@/lib/chat/ui-messages-storage";
 import {
   getSpeechRecognitionCtor,
   speechRecognitionErrorMessage,
@@ -35,6 +44,27 @@ import {
   type SpeechRecognitionResultEvent,
 } from "@/lib/client/speech-recognition";
 import type { Locale } from "@/lib/i18n/types";
+
+const emptySubscribe = () => () => {};
+
+/** Necesitamos "solo cliente" para dictado sin setState en un effect. */
+function useIsClient() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
+function isGenerarUrlReporteReady(p: unknown): p is { toolCallId: string; type: string } {
+  if (typeof p !== "object" || p === null || !("type" in p)) return false;
+  if ((p as { type: string }).type !== "tool-generar_url_reporte") return false;
+  if ((p as { state?: string }).state !== "output-available") return false;
+  return (
+    (p as { output?: { abrirAsistenteDescarga?: boolean } }).output
+      ?.abrirAsistenteDescarga === true
+  );
+}
 
 function messageText(m: { parts?: { type: string; text?: string }[] }) {
   return (
@@ -97,6 +127,10 @@ function recLangForLocale(locale: Locale): string {
 function MediChatBody() {
   const { t, messages: dict, locale } = useLocale();
   const SUGGESTED = dict.chat.suggested;
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [sessionBoot, setSessionBoot] = useState(false);
+  const [sessionListKey, setSessionListKey] = useState(0);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -115,10 +149,13 @@ function MediChatBody() {
             trigger,
             messageId,
             locale,
+            ...(activeSessionId
+              ? { sessionId: activeSessionId }
+              : {}),
           },
         }),
       }),
-    [locale],
+    [locale, activeSessionId],
   );
 
   const {
@@ -130,23 +167,104 @@ function MediChatBody() {
     error,
     clearError,
   } = useChat({
+    id: "medicoach-main-chat",
     transport,
     experimental_throttle: 48,
   });
+
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportNonce, setReportNonce] = useState(0);
+  const seenReportTool = useRef(new Set<string>());
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/chat/sessions", { cache: "no-store" });
+        if (!r.ok) throw new Error("sessions");
+        const { sessions } = (await r.json()) as { sessions: { id: string }[] };
+        if (cancel) return;
+        if (sessions?.length) {
+          const top = sessions[0];
+          const d = await fetch(`/api/chat/sessions/${top.id}`, {
+            cache: "no-store",
+          });
+          if (!d.ok) throw new Error("session");
+          const j = (await d.json()) as { uiMessages: UIMessage[]; id: string };
+          if (cancel) return;
+          setActiveSessionId(j.id);
+          setMessages(j.uiMessages.length ? j.uiMessages : []);
+        } else {
+          const p = await fetch("/api/chat/sessions", { method: "POST" });
+          if (!p.ok) throw new Error("post");
+          const { id } = (await p.json()) as { id: string };
+          if (cancel) return;
+          setActiveSessionId(id);
+          setMessages([]);
+        }
+      } catch {
+        if (cancel) return;
+        const local = loadChatUiMessages();
+        if (local.length) {
+          setMessages(local);
+        }
+      } finally {
+        if (!cancel) setSessionBoot(true);
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [setMessages]);
+
+  useEffect(() => {
+    if (!sessionBoot) return;
+    saveChatUiMessages(messages);
+  }, [messages, sessionBoot]);
+
+  useEffect(() => {
+    for (const m of messages) {
+      if (m.role !== "assistant") continue;
+      for (const p of m.parts ?? []) {
+        if (!isGenerarUrlReporteReady(p)) continue;
+        const id = p.toolCallId;
+        if (!id || seenReportTool.current.has(id)) continue;
+        seenReportTool.current.add(id);
+        setReportOpen(true);
+        setReportNonce((n) => n + 1);
+      }
+    }
+  }, [messages]);
 
   const busy = status === "streaming" || status === "submitted";
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const recRef = useRef<BrowserSpeechRecognition | null>(null);
-  const [clientReady, setClientReady] = useState(false);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const clientReady = useIsClient();
   const canDictate = clientReady && speechRecognitionSupported();
+  const reportBtn =
+    locale === "en" ? "PDF report" : "Reporte PDF";
+  const historyLabel = locale === "en" ? "Chats" : "Charlas";
+  const historyEmpty =
+    locale === "en" ? "No saved chats yet." : "Todavía no hay charlas guardadas.";
   const endRef = useRef<HTMLDivElement>(null);
 
-  const startNewConversation = useCallback(() => {
+  const endMicStream = useCallback(() => {
+    const s = micStreamRef.current;
+    if (s) {
+      s.getTracks().forEach((tr) => tr.stop());
+    }
+    micStreamRef.current = null;
+    setMicStream(null);
+  }, []);
+
+  const startNewConversation = useCallback(async () => {
     if (busy) void stop();
-    setMessages(() => []);
+    clearChatUiMessages();
     setInput("");
     setVoiceError(null);
     clearError();
@@ -155,10 +273,43 @@ function MediChatBody() {
     } catch {
       /* ignore */
     }
+    endMicStream();
     recRef.current = null;
     setListening(false);
     setInterim("");
-  }, [busy, clearError, setMessages, stop]);
+    try {
+      const p = await fetch("/api/chat/sessions", { method: "POST" });
+      if (p.ok) {
+        const { id } = (await p.json()) as { id: string };
+        setActiveSessionId(id);
+      } else {
+        setActiveSessionId(null);
+      }
+    } catch {
+      setActiveSessionId(null);
+    }
+    setMessages(() => []);
+    setSessionListKey((k) => k + 1);
+  }, [busy, clearError, endMicStream, setMessages, stop]);
+
+  const loadSessionById = useCallback(
+    async (id: string) => {
+      if (busy) void stop();
+      clearError();
+      try {
+        const d = await fetch(`/api/chat/sessions/${id}`, { cache: "no-store" });
+        if (!d.ok) return;
+        const j = (await d.json()) as { uiMessages: UIMessage[]; id: string };
+        setActiveSessionId(j.id);
+        setMessages(j.uiMessages.length ? j.uiMessages : []);
+        clearChatUiMessages();
+        saveChatUiMessages(j.uiMessages);
+      } catch {
+        /* ignore */
+      }
+    },
+    [busy, clearError, setMessages, stop],
+  );
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
@@ -170,12 +321,13 @@ function MediChatBody() {
     } catch {
       /* ignore */
     }
+    endMicStream();
     recRef.current = null;
     setListening(false);
     setInterim("");
-  }, []);
+  }, [endMicStream]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     setVoiceError(null);
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
@@ -185,6 +337,23 @@ function MediChatBody() {
     if (busy) return;
 
     const lang = recLangForLocale(locale);
+
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+        micStreamRef.current = stream;
+        setMicStream(stream);
+      } catch {
+        micStreamRef.current = null;
+        setMicStream(null);
+        /* VU: sin stream igual podemos dictar con Web Speech. */
+      }
+    } else {
+      micStreamRef.current = null;
+      setMicStream(null);
+    }
 
     try {
       const rec = new Ctor();
@@ -220,6 +389,7 @@ function MediChatBody() {
       };
 
       rec.onend = () => {
+        endMicStream();
         setListening(false);
         setInterim("");
         recRef.current = null;
@@ -229,23 +399,29 @@ function MediChatBody() {
       rec.start();
       setListening(true);
     } catch {
+      endMicStream();
       setVoiceError(t("chat.micInitError"));
       setListening(false);
     }
-  }, [busy, stopListening, locale, t]);
+  }, [busy, endMicStream, locale, t, stopListening]);
 
   useEffect(() => {
-    setClientReady(true);
     return () => {
       try {
         recRef.current?.abort();
       } catch {
         /* ignore */
       }
+      const s = micStreamRef.current;
+      if (s) {
+        s.getTracks().forEach((tr) => tr.stop());
+        micStreamRef.current = null;
+      }
     };
   }, []);
 
   return (
+    <>
     <div className="flex min-h-[min(72dvh,760px)] flex-col overflow-hidden rounded-2xl border border-border/40 bg-card shadow-md ring-1 ring-black/5 dark:ring-white/10">
       <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-gradient-to-r from-background via-primary/[0.04] to-background px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -256,18 +432,48 @@ function MediChatBody() {
           <p className="font-heading truncate text-sm font-semibold text-foreground sm:text-base">
             {t("chat.todayWithAssistant")}
           </p>
+          {!sessionBoot ? (
+            <Loader2
+              className="text-primary size-3.5 shrink-0 animate-spin"
+              aria-label="Cargando"
+            />
+          ) : null}
         </div>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          className="shrink-0 gap-1.5 rounded-full px-3.5 text-xs sm:text-sm"
-          onClick={startNewConversation}
-        >
-          <Plus className="size-3.5" aria-hidden />
-          <span className="hidden sm:inline">{t("chat.newChat")}</span>
-          <span className="sm:hidden">{t("chat.newChatShort")}</span>
-        </Button>
+        <div className="flex max-w-[70%] shrink-0 items-center justify-end gap-0.5 sm:max-w-none sm:gap-1.5">
+          <ChatSessionPicker
+            activeId={activeSessionId}
+            onSelect={(id) => void loadSessionById(id)}
+            refreshKey={sessionListKey}
+            busy={busy || !sessionBoot}
+            label={historyLabel}
+            emptyLabel={historyEmpty}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 gap-1 rounded-full px-2.5 text-[11px] sm:gap-1.5 sm:px-3.5 sm:text-xs"
+            onClick={() => {
+              setReportOpen(true);
+              setReportNonce((n) => n + 1);
+            }}
+            aria-label={reportBtn}
+          >
+            <FileText className="size-3.5" aria-hidden />
+            <span className="max-[360px]:sr-only sm:inline">{reportBtn}</span>
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            className="h-8 shrink-0 gap-1.5 rounded-full px-2.5 text-xs sm:px-3.5 sm:text-sm"
+            onClick={startNewConversation}
+          >
+            <Plus className="size-3.5" aria-hidden />
+            <span className="hidden min-[400px]:inline">{t("chat.newChat")}</span>
+            <span className="min-[400px]:hidden">{t("chat.newChatShort")}</span>
+          </Button>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col">
@@ -292,10 +498,10 @@ function MediChatBody() {
                         variant="secondary"
                         className="h-auto w-full justify-start rounded-xl border border-border/50 bg-background/90 py-2.5 text-left text-sm font-normal leading-snug text-foreground shadow-none transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:shadow-sm"
                         onClick={() => {
-                          if (busy) return;
+                          if (busy || !sessionBoot) return;
                           void sendMessage({ text });
                         }}
-                        disabled={busy}
+                        disabled={busy || !sessionBoot}
                       >
                         {text}
                       </Button>
@@ -328,9 +534,9 @@ function MediChatBody() {
         ) : null}
       </div>
 
-      <div className="border-t border-border/50 bg-gradient-to-b from-background to-muted/20 p-3 sm:p-4">
+      <div className="shrink-0 border-t border-border/50 bg-gradient-to-b from-background to-muted/20 p-3 sm:p-4">
         <form
-          className="mx-auto flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-end"
+          className="mx-auto flex w-full max-w-2xl flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
             const text = input.trim();
@@ -339,40 +545,48 @@ function MediChatBody() {
             setInput("");
           }}
         >
-          <div className="flex w-full min-w-0 flex-1 gap-2">
+          <div className="flex w-full min-w-0 items-stretch gap-2">
             <Input
               name="msg"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("chat.inputPlaceholder")}
-              disabled={busy || listening}
+              disabled={busy || !sessionBoot || listening}
               autoComplete="off"
-              className="h-12 flex-1 rounded-xl border-border/60 bg-background/80"
+              className="h-12 min-w-0 flex-1 rounded-xl border-border/60 bg-background/80"
               aria-label={t("chat.inputAria")}
             />
             <Button
               type="button"
               variant={listening ? "secondary" : "outline"}
               size="icon"
-              className="h-12 w-12 shrink-0 rounded-xl"
-              disabled={busy || !canDictate}
-              onClick={() => (listening ? stopListening() : startListening())}
+              className={cn(
+                "h-12 shrink-0 self-center rounded-xl",
+                listening ? "w-14" : "w-12",
+              )}
+              disabled={busy || !sessionBoot || !canDictate}
+              onClick={() => (listening ? stopListening() : void startListening())}
               aria-pressed={listening}
               aria-label={
                 listening ? t("chat.stopDictation") : t("chat.startDictation")
               }
             >
               {listening ? (
-                <MicOff className="size-4 text-destructive" aria-hidden />
+                <VoiceActivityMeter
+                  active
+                  mediaStream={micStream}
+                  className="max-w-[2.1rem] px-0.5"
+                  maxHeightClass="h-5"
+                />
               ) : (
                 <Mic className="size-4" aria-hidden />
               )}
             </Button>
             <Button
               type="submit"
-              className="h-12 w-12 shrink-0 rounded-xl"
+              className="h-12 w-12 shrink-0 self-center rounded-xl"
               size="icon"
-              disabled={busy || listening || !input.trim()}
+              disabled={busy || !sessionBoot || listening || !input.trim()}
             >
               {busy ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -382,15 +596,25 @@ function MediChatBody() {
               <span className="sr-only">{t("chat.send")}</span>
             </Button>
           </div>
-          {listening && interim ? (
-            <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
-              {t("chat.listening")}
-              {interim}
-            </p>
-          ) : listening ? (
-            <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
-              {t("chat.listeningHelp")}
-            </p>
+          {listening ? (
+            <div
+              className="w-full rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5 text-left text-xs leading-relaxed text-muted-foreground shadow-sm sm:px-3.5"
+              role="status"
+              aria-live="polite"
+            >
+              {interim ? (
+                <>
+                  <span className="mb-0.5 block text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground/90">
+                    {t("chat.listening")}
+                  </span>
+                  <p className="line-clamp-4 break-words text-foreground/90">
+                    {interim}
+                  </p>
+                </>
+              ) : (
+                <p>{t("chat.listeningHelp")}</p>
+              )}
+            </div>
           ) : null}
         </form>
         {busy ? (
@@ -407,6 +631,12 @@ function MediChatBody() {
         ) : null}
       </div>
     </div>
+    <ReportPdfSheet
+      open={reportOpen}
+      onOpenChange={setReportOpen}
+      autoStartNonce={reportNonce}
+    />
+    </>
   );
 }
 
@@ -431,7 +661,9 @@ export function MediChat() {
   const [terms, setTerms] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setTerms(getChatTermsAccepted());
+    void queueMicrotask(() => {
+      setTerms(getChatTermsAccepted());
+    });
   }, []);
 
   if (terms === null) {
