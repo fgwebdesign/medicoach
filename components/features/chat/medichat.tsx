@@ -98,8 +98,27 @@ function MediChatBody() {
   const { t, messages: dict, locale } = useLocale();
   const SUGGESTED = dict.chat.suggested;
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat" }),
-    [],
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({
+          id,
+          messages: msgs,
+          body,
+          trigger,
+          messageId,
+        }) => ({
+          body: {
+            ...(body && typeof body === "object" ? body : {}),
+            id,
+            messages: msgs,
+            trigger,
+            messageId,
+            locale,
+          },
+        }),
+      }),
+    [locale],
   );
 
   const {

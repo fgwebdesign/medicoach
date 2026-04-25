@@ -238,10 +238,52 @@
     "source": "MedlinePlus"
   },
   {
-    "id": "control-medico-regular",
-    "drug": "general",
-    "topic": "seguimiento médico",
-    "content": "Las consultas médicas regulares son esenciales para ajustar tratamientos, monitorear análisis (glucemia, HbA1c, función renal, perfil lipídico) y detectar complicaciones temprano. No faltar a los controles programados.",
+    "id": "empagliflozina-sglt2-clase",
+    "drug": "Empagliflozina / dapagliflozina (clase SGLT2)",
+    "topic": "visión general",
+    "content": "Los fármacos SGLT2 (empagliflozina, dapagliflozina, etc.) reducen glucosa en orina, con beneficio en corazón y riñones en muchas personas con diabetes. Efectos frecuentes: infecciones urinarias o genitales, deshidratación, micción frecuente. Avisar al médico si hay dolor o ardor al orinar, sed intensa, o explicación al médico de cualquier sonda de piel. No ajustar dosis por cuenta propia.",
+    "source": "MedlinePlus / FDA (clase fármaco)"
+  },
+  {
+    "id": "empagliflozina-riesgos",
+    "drug": "SGLT2 (empagliflozina)",
+    "topic": "cuándo acudir ya",
+    "content": "Buscar atención urgente con signos de cetoacidosis aunque el azúcar no esté altísima, dificultad respiratoria, vómitos persistentes, o confusión. Ante fiebre e infección genitourinaria con malestar, consultar. Personas con insuficiencia renal: siempre ajuste por médico; no dejar fármaco sin charla con el equipo.",
+    "source": "FDA warnings (clase)"
+  },
+  {
+    "id": "semaglutida-glp1",
+    "drug": "Semaglutida (GLP-1)",
+    "topic": "efectos y cuidado",
+    "content": "Los análogos de GLP-1 (p. ej. semaglutida) ayudan a la glucosa y a menudo a peso. Efectos frecuentes: náuseas, vómitos, diarrea, menos apetito. Suelen empezar a dosis bajas. En caso de dolor abdominal severo, vómitos no paro, o signos alérgicos, consultar. No combinar dosis o marcas sin ind médica. Insistencia en náusea fuerte: ver al médico.",
+    "source": "MedlinePlus (clase GLP-1)"
+  },
+  {
+    "id": "insulina-basal-general",
+    "drug": "Insulina (basal, ej. glargina)",
+    "topic": "hipoglucemia y uso",
+    "content": "La insulina puede bajar el azúcar de más (hipoglucemia): temblor, sudor, confusión, debilidad. Tener siempre una fuente rápida de azúcar a mano. Inyectar en sitios rotatorios, revisar con el médico dosis/horario; no ajustar por cuenta propia. Cada tipo de insulina tiene otra pauta: seguir estricto lo indicado y control de glucosa dado por el médico.",
+    "source": "MedlinePlus / FDA"
+  },
+  {
+    "id": "metoprolol-betabloqueador",
+    "drug": "Metoprolol",
+    "topic": "efectos y señal de alarma",
+    "content": "Los betabloqueadores, como el metoprolol, pueden causar frecuencia cardíaca baja, fatiga, mareo al ponerse de pie, y sensación de frío en manos. No suspender el tratamiento de golpe. Consultar con urgencia si desmayo, dificultad para respirar, o dolor de pecho. En asma o EPOC, avisar al médico si empeora la falta de aire. Nunca ajustar dosis por cuenta propia.",
     "source": "MedlinePlus"
+  },
+  {
+    "id": "sitagliptina-dpp4",
+    "drug": "Sitagliptina (iDPP-4)",
+    "topic": "dolor de panza y fármaco",
+    "content": "Los inhibidores de DPP-4 (p. ej. sitagliptina) bajan el azúcar poscomida, con poco riesgo de hipoglucemia severa. Dolor de panza intenso que se irradia a la espalda, acompañado de náuseas o vómitos, puede (raramente) vincularse a problemas en el páncreas: buscar atención urgente. Avisar al médico reacción en piel, hinchazón, o síntomas de bajo azúcar que no ceden con azúcar de rescate.",
+    "source": "FDA / MedlinePlus (clase)"
+  },
+  {
+    "id": "dapagliflozina-uti",
+    "drug": "Dapagliflozina",
+    "topic": "infecciones genitourinarias",
+    "content": "Los SGLT2 aumentan glucosa en orina, lo que puede favorecer infecciones fúngicas o de vías. Mantener buena higiene, hidratar, y al médico si ardor, mal olor, fiebre, o dolor al orinar. No automedicarse con antiinflamatorios o antibióticos viejos: consulta.",
+    "source": "MedlinePlus (clase SGLT2)"
   }
 ]

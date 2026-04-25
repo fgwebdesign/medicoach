@@ -2,29 +2,32 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/integrations/supabase/admin";
 import { fetchDrugLabel } from "@/lib/medicoach/fda/client";
-import medicalKnowledge from "@/data/medical-knowledge.json";
+import { searchMedicalKnowledge } from "@/lib/medicoach/knowledge-search";
+import type { Locale } from "@/lib/i18n/types";
 
 interface ToolContext {
   patientId?: string;
-}
-
-interface MedicalKnowledgeEntry {
-  id: string;
-  drug: string;
-  topic: string;
-  content: string;
-  source: string;
+  /** Idioma de la conversación (afecta descripciones de tools y textos de respuesta). */
+  locale?: Locale;
 }
 
 export function createMediCoachTools(ctx: ToolContext = {}) {
+  const locale = ctx.locale ?? "es";
+  const en = locale === "en";
+
   return {
     consultar_medicamento: tool({
-      description:
-        "Busca información oficial de un medicamento en openFDA: efectos adversos, contraindicaciones, dosis. Usá esto SIEMPRE que el paciente mencione un medicamento.",
+      description: en
+        ? "Look up official U.S. medication information from openFDA (adverse effects, warnings, dosing on label). Use whenever a drug name is mentioned or clearly implied."
+        : "Busca información oficial de un medicamento en openFDA: efectos adversos, contraindicaciones, dosis. Usá esto SIEMPRE que el paciente mencione un medicamento.",
       inputSchema: z.object({
         nombre: z
           .string()
-          .describe("Nombre del medicamento (ej: metformin, enalapril)"),
+          .describe(
+            en
+              ? "Drug name (e.g. metformin, lisinopril). English or INN is fine."
+              : "Nombre del medicamento (ej: metformin, enalapril)",
+          ),
       }),
       execute: async ({ nombre }) => {
         try {
@@ -37,46 +40,54 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
     }),
 
     buscar_conocimiento: tool({
-      description:
-        "Busca en la base de conocimiento curada en español sobre medicamentos comunes para diabetes e hipertensión.",
+      description: en
+        ? "Search the curated MediCoach knowledge base on common diabetes and blood pressure medications. Entries are mostly in Spanish; the search maps common English terms. Use for general education when openFDA is not needed."
+        : "Busca en la base de conocimiento curada sobre medicamentos comunes para diabetes e hipertensión. Acepta consulta en español; en inglés también convierte términos frecuentes.",
       inputSchema: z.object({
         query: z
           .string()
-          .describe('Consulta en español, ej: "mareos por metformina"'),
+          .describe(
+            en
+              ? 'Question or keywords, English or Spanish, e.g. "dizziness after metformin", "mareos metformina"'
+              : 'Consulta, ej: "mareos por metformina" o en inglés "dizziness metformin"',
+          ),
       }),
       execute: async ({ query }) => {
-        const q = query.toLowerCase();
-        const knowledge = medicalKnowledge as MedicalKnowledgeEntry[];
-        const results = knowledge
-          .filter(
-            (item) =>
-              item.content.toLowerCase().includes(q) ||
-              item.drug.toLowerCase().includes(q) ||
-              item.topic.toLowerCase().includes(q),
-          )
-          .slice(0, 4);
-        return { results, fuente: "MediCoach Knowledge Base (curado)" };
+        const results = searchMedicalKnowledge(query, locale, 4);
+        return {
+          results,
+          fuente: en
+            ? "MediCoach curated knowledge base"
+            : "MediCoach Knowledge Base (curado)",
+        };
       },
     }),
 
     registrar_sintoma: tool({
-      description:
-        "Registra un síntoma reportado por el paciente en su historial clínico. Usalo cuando el paciente describa cómo se siente.",
+      description: en
+        ? "Log a symptom the user reports into their chart. Use when they describe how they feel (optionally with severity and context)."
+        : "Registra un síntoma reportado por el paciente en su historial clínico. Usalo cuando el paciente describa cómo se siente.",
       inputSchema: z.object({
         sintoma: z
           .string()
           .describe(
-            'Nombre del síntoma normalizado, ej: "mareos", "cefalea", "náuseas"',
+            en
+              ? 'Normalized symptom name, e.g. "dizziness", "headache", "nausea"'
+              : 'Nombre del síntoma normalizado, ej: "mareos", "cefalea", "náuseas"',
           ),
-        severidad: z.number().min(1).max(10).describe("Severidad 1-10"),
+        severidad: z.number().min(1).max(10).describe("Severity 1-10"),
         contexto: z
           .string()
           .optional()
-          .describe('Contexto: ej "después de tomar metformina"'),
+          .describe(
+            en
+              ? 'Optional context, e.g. "after taking metformin"'
+              : 'Contexto: ej "después de tomar metformina"',
+          ),
       }),
       execute: async ({ sintoma, severidad, contexto }) => {
         if (!ctx.patientId) {
-          return { error: "Usuario no autenticado" };
+          return { error: en ? "Not signed in" : "Usuario no autenticado" };
         }
         const admin = createAdminClient();
         const { data, error } = await admin
@@ -97,20 +108,23 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
         return {
           ok: true,
           id: data.id,
-          mensaje: `Registré "${sintoma}" con severidad ${severidad}/10`,
+          mensaje: en
+            ? `Logged “${sintoma}” with severity ${severidad}/10`
+            : `Registré "${sintoma}" con severidad ${severidad}/10`,
         };
       },
     }),
 
     obtener_historial: tool({
-      description:
-        "Obtiene los síntomas y medicación tomados por el paciente en los últimos N días.",
+      description: en
+        ? "Get symptoms logged in the last N days and the patient’s current active medication list (from their account)."
+        : "Obtiene los síntomas y medicación activa del paciente en los últimos N días.",
       inputSchema: z.object({
         dias: z.number().min(1).max(30).default(7),
       }),
       execute: async ({ dias }) => {
         if (!ctx.patientId) {
-          return { error: "Usuario no autenticado" };
+          return { error: en ? "Not signed in" : "Usuario no autenticado" };
         }
         const admin = createAdminClient();
         const desde = new Date(
@@ -138,14 +152,16 @@ export function createMediCoachTools(ctx: ToolContext = {}) {
     }),
 
     generar_url_reporte: tool({
-      description:
-        "Genera el link al reporte PDF que el paciente puede descargar para llevar a su médico. Usalo cuando el paciente pida un resumen o reporte.",
+      description: en
+        ? "Get the in-app report URL the user can open or show to a clinician. Use when they ask for a summary or printable report."
+        : "Genera el link al reporte PDF que el paciente puede descargar para llevar a su médico. Usalo cuando el paciente pida un resumen o reporte.",
       inputSchema: z.object({}),
       execute: async () => {
         return {
           url: "/report",
-          mensaje:
-            "Reporte listo para descargar en /report — podés compartirlo con tu médico",
+          mensaje: en
+            ? "Open /report in MediCoach to download or share a summary with your clinician"
+            : "Reporte listo para descargar en /report — podés compartirlo con tu médico",
         };
       },
     }),
