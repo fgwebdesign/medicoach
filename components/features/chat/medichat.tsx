@@ -24,6 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { ChatTermsModal } from "@/components/features/chat/chat-terms-modal";
+import { getChatTermsAccepted } from "@/lib/chat/terms-storage";
 import {
   getSpeechRecognitionCtor,
   speechRecognitionErrorMessage,
@@ -31,13 +34,7 @@ import {
   type BrowserSpeechRecognition,
   type SpeechRecognitionResultEvent,
 } from "@/lib/client/speech-recognition";
-import { ChatLegalNotice } from "@/components/features/chat/chat-legal-notice";
-
-const SUGGESTED_PROMPTS = [
-  "Hoy tomé metformina y tuve mareos leves, ¿puede ser normal?",
-  "Tengo presión alta y a veces tos, ¿a qué puede deberse?",
-  "Quiero anotar cefalea leve desde ayer, severidad 4",
-] as const;
+import type { Locale } from "@/lib/i18n/types";
 
 function messageText(m: { parts?: { type: string; text?: string }[] }) {
   return (
@@ -48,7 +45,11 @@ function messageText(m: { parts?: { type: string; text?: string }[] }) {
   );
 }
 
-const MessageBubble = memo(function MessageBubble({ message: m }: { message: UIMessage }) {
+const MessageBubble = memo(function MessageBubble({
+  message: m,
+}: {
+  message: UIMessage;
+}) {
   const text = messageText(m);
   const isUser = m.role === "user";
 
@@ -66,8 +67,8 @@ const MessageBubble = memo(function MessageBubble({ message: m }: { message: UIM
             ? "bg-primary text-primary-foreground shadow-sm"
             : "border border-border/50 bg-gradient-to-br from-primary/8 to-muted/80 text-primary shadow-sm",
         )}
-        title={isUser ? "Vos" : "Asistente MediCoach"}
-        aria-label={isUser ? "Tu mensaje" : "Respuesta del asistente"}
+        title={isUser ? "Vos" : "MediCoach"}
+        aria-label={isUser ? "Your message" : "Assistant message"}
       >
         {isUser ? (
           <User className="size-4" strokeWidth={2.25} aria-hidden />
@@ -89,7 +90,13 @@ const MessageBubble = memo(function MessageBubble({ message: m }: { message: UIM
   );
 });
 
-export function MediChat() {
+function recLangForLocale(locale: Locale): string {
+  return locale === "en" ? "en-US" : "es-UY";
+}
+
+function MediChatBody() {
+  const { t, messages: dict, locale } = useLocale();
+  const SUGGESTED = dict.chat.suggested;
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat" }),
     [],
@@ -153,16 +160,16 @@ export function MediChat() {
     setVoiceError(null);
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      setVoiceError(
-        "Tu navegador no soporta dictado por voz. Probá Chrome o Edge.",
-      );
+      setVoiceError(t("chat.micBrowserUnsupported"));
       return;
     }
     if (busy) return;
 
+    const lang = recLangForLocale(locale);
+
     try {
       const rec = new Ctor();
-      rec.lang = "es-UY";
+      rec.lang = lang;
       rec.continuous = true;
       rec.interimResults = true;
 
@@ -172,9 +179,9 @@ export function MediChat() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const row = event.results.item(i);
           if (!row?.[0]) continue;
-          const t = row[0].transcript;
-          if (row.isFinal) piece += t;
-          else interimPiece += t;
+          const t0 = row[0].transcript;
+          if (row.isFinal) piece += t0;
+          else interimPiece += t0;
         }
         if (piece) {
           setInput((prev) => {
@@ -203,10 +210,10 @@ export function MediChat() {
       rec.start();
       setListening(true);
     } catch {
-      setVoiceError("No se pudo iniciar el micrófono.");
+      setVoiceError(t("chat.micInitError"));
       setListening(false);
     }
-  }, [busy, stopListening]);
+  }, [busy, stopListening, locale, t]);
 
   useEffect(() => {
     setClientReady(true);
@@ -228,7 +235,7 @@ export function MediChat() {
             aria-hidden
           />
           <p className="font-heading truncate text-sm font-semibold text-foreground sm:text-base">
-            Hoy con el asistente
+            {t("chat.todayWithAssistant")}
           </p>
         </div>
         <Button
@@ -239,30 +246,27 @@ export function MediChat() {
           onClick={startNewConversation}
         >
           <Plus className="size-3.5" aria-hidden />
-          <span className="hidden sm:inline">Nueva charla</span>
-          <span className="sm:hidden">Nueva</span>
+          <span className="hidden sm:inline">{t("chat.newChat")}</span>
+          <span className="sm:hidden">{t("chat.newChatShort")}</span>
         </Button>
       </div>
-
-      <ChatLegalNotice showMicNote={canDictate} />
 
       <div className="flex min-h-0 flex-1 flex-col">
         <ScrollArea className="min-h-[300px] flex-1 px-3 py-3 sm:min-h-[380px] sm:px-5 sm:py-5">
           {messages.length === 0 ? (
             <div className="mx-auto flex max-w-xl flex-col items-center gap-5 py-2 text-center sm:py-4">
               <p className="font-heading text-lg font-semibold text-foreground sm:text-xl">
-                ¿Cómo te sentís hoy?
+                {t("chat.howTodayTitle")}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Escribí o elegí un ejemplo. Lo que anotemos puede ayudarte a armar
-                un resumen para el médico.
+                {t("chat.howTodaySubtitle")}
               </p>
               <div className="w-full space-y-2.5 text-left">
                 <p className="text-xs font-medium text-muted-foreground sm:text-sm">
-                  Ideas para empezar
+                  {t("chat.ideaPrompts")}
                 </p>
                 <ul className="flex flex-col gap-2 sm:gap-2.5">
-                  {SUGGESTED_PROMPTS.map((text) => (
+                  {SUGGESTED.map((text) => (
                     <li key={text}>
                       <Button
                         type="button"
@@ -321,11 +325,11 @@ export function MediChat() {
               name="msg"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribí o dictá cómo te sentís…"
+              placeholder={t("chat.inputPlaceholder")}
               disabled={busy || listening}
               autoComplete="off"
               className="h-12 flex-1 rounded-xl border-border/60 bg-background/80"
-              aria-label="Mensaje para MediCoach"
+              aria-label={t("chat.inputAria")}
             />
             <Button
               type="button"
@@ -335,7 +339,9 @@ export function MediChat() {
               disabled={busy || !canDictate}
               onClick={() => (listening ? stopListening() : startListening())}
               aria-pressed={listening}
-              aria-label={listening ? "Detener dictado" : "Dictar por voz"}
+              aria-label={
+                listening ? t("chat.stopDictation") : t("chat.startDictation")
+              }
             >
               {listening ? (
                 <MicOff className="size-4 text-destructive" aria-hidden />
@@ -354,16 +360,17 @@ export function MediChat() {
               ) : (
                 <SendHorizonal className="size-4" aria-hidden />
               )}
-              <span className="sr-only">Enviar</span>
+              <span className="sr-only">{t("chat.send")}</span>
             </Button>
           </div>
           {listening && interim ? (
             <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
-              Escuchando: {interim}
+              {t("chat.listening")}
+              {interim}
             </p>
           ) : listening ? (
             <p className="text-xs text-muted-foreground sm:order-last sm:w-full">
-              Hablá y tocá el micrófono otra vez para terminar.
+              {t("chat.listeningHelp")}
             </p>
           ) : null}
         </form>
@@ -375,11 +382,59 @@ export function MediChat() {
               size="sm"
               onClick={() => void stop()}
             >
-              Dejar de generar
+              {t("chat.stopGenerating")}
             </Button>
           </div>
         ) : null}
       </div>
     </div>
+  );
+}
+
+function MediChatLoadingShell() {
+  const { t } = useLocale();
+  return (
+    <div
+      className="flex min-h-[min(72dvh,760px)] flex-col items-center justify-center overflow-hidden rounded-2xl border border-border/40 bg-card px-4 py-12 text-sm text-muted-foreground shadow-md ring-1 ring-black/5 dark:ring-white/10"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        className="mb-3 size-8 animate-spin text-primary"
+        aria-hidden
+      />
+      {t("common.loading")}
+    </div>
+  );
+}
+
+export function MediChat() {
+  const [terms, setTerms] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setTerms(getChatTermsAccepted());
+  }, []);
+
+  if (terms === null) {
+    return <MediChatLoadingShell />;
+  }
+
+  return (
+    <>
+      <ChatTermsModal
+        open={!terms}
+        onAccepted={() => setTerms(true)}
+      />
+      <div
+        className={cn(
+          "transition-opacity duration-200",
+          !terms && "pointer-events-none select-none opacity-35",
+        )}
+        inert={!terms}
+        aria-hidden={!terms}
+      >
+        <MediChatBody />
+      </div>
+    </>
   );
 }

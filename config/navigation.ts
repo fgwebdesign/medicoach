@@ -1,12 +1,11 @@
 /**
  * Rutas y metadatos de navegación principal.
- * Mantener aquí evita drift entre header, footer y sitemap.
+ * Las etiquetas visibles se resuelven con i18n en el header (`nav.<key>`).
  */
 export const MAIN_NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/chat", label: "Chat" },
-  { href: "/report", label: "Reporte" },
-  { href: "/login", label: "Entrar" },
+  { href: "/dashboard", key: "dashboard" },
+  { href: "/chat", key: "chat" },
+  { href: "/report", key: "report" },
 ] as const;
 
 export type MainNavItem = (typeof MAIN_NAV)[number];

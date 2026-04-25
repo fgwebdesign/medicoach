@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ThemeProvider } from "@teispace/next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -13,8 +14,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       storage="local"
       disableTransitionOnChange
     >
-      {children}
-      <Toaster richColors position="top-center" />
+      <LocaleProvider>
+        {children}
+        <Toaster richColors position="top-center" />
+      </LocaleProvider>
     </ThemeProvider>
   );
 }
