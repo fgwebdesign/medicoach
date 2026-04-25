@@ -1,56 +1,84 @@
 /**
- * Carga un subconjunto fijo en `medical_knowledge` con embeddings OpenAI.
- * Uso: `npx tsx scripts/ingest-knowledge.ts` (requiere .env.local con OPENAI_* y SUPABASE_SERVICE_ROLE_KEY).
+ * Carga fragmentos en `medical_knowledge` con embeddings (OpenAI o AI Gateway).
+ *
+ * Fuentes (en orden):
+ *   1. `data/knowledge/mvp-curated.json` — contenido educativo MVP (siempre).
+ *   2. `data/knowledge/openfda-chunks.json` — si existe (generar con
+ *      `npx tsx scripts/fetch-openfda-knowledge.ts`).
+ *
+ * Requiere `.env.local`: SUPABASE_SERVICE_ROLE_KEY + OPENAI_API_KEY o Gateway.
+ *
+ * Uso:
+ *   npx tsx scripts/ingest-knowledge.ts
+ *   npx tsx scripts/ingest-knowledge.ts --clear   # borra filas source mvp/openfda antes
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { createAdminClient } from "../lib/integrations/supabase/admin";
 import { embedQuery } from "../lib/medicoach/rag/embed";
 
-const SEED = [
-  {
-    source: "seed",
-    category: "diabetes",
-    content:
-      "Pregunta: ¿Cuáles son síntomas frecuentes de la diabetes tipo 2?\n" +
-      "Respuesta: Sede, orinar con frecuencia, fatiga, visión borrosa y hambre intensa. Siempre consultá con tu equipo de salud.",
-    metadata: { locale: "es" },
-  },
-  {
-    source: "seed",
-    category: "hipertension",
-    content:
-      "Pregunta: ¿Qué es la presión arterial alta?\n" +
-      "Respuesta: Es cuando la fuerza de la sangre contra las paredes de las arterias es demasiado alta de forma sostenida. El seguimiento médico es esencial.",
-    metadata: { locale: "es" },
-  },
-  {
-    source: "seed",
-    category: "adherencia",
-    content:
-      "Pregunta: ¿Por qué importa tomar la medicación a la misma hora?\n" +
-      "Respuesta: Ayuda a mantener niveles estables del fármaco en sangre y mejora la adherencia al tratamiento.",
-    metadata: { locale: "es" },
-  },
-] as const;
+type Row = {
+  source: string;
+  category?: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+};
+
+function loadJson(file: string): Row[] {
+  const p = path.join(process.cwd(), file);
+  try {
+    const raw = readFileSync(p, "utf-8");
+    const data = JSON.parse(raw) as unknown;
+    if (!Array.isArray(data)) return [];
+    return data as Row[];
+  } catch {
+    return [];
+  }
+}
 
 async function main() {
+  const clear = process.argv.includes("--clear");
   const supabase = createAdminClient();
-  for (const row of SEED) {
+
+  const curated = loadJson("data/knowledge/mvp-curated.json");
+  const openfda = loadJson("data/knowledge/openfda-chunks.json");
+  const rows = [...curated, ...openfda];
+
+  if (rows.length === 0) {
+    console.error("No hay filas en data/knowledge/*.json");
+    process.exit(1);
+  }
+
+  if (clear) {
+    const { error } = await supabase
+      .from("medical_knowledge")
+      .delete()
+      .in("source", ["mvp-curated", "openfda"]);
+    if (error) {
+      console.error("delete:", error);
+      process.exit(1);
+    }
+    console.log("Filas previas (mvp-curated / openfda) eliminadas.");
+  }
+
+  for (const row of rows) {
+    if (!row.content?.trim()) continue;
     const embedding = await embedQuery(row.content);
     const vectorLiteral = `[${embedding.join(",")}]`;
     const { error } = await supabase.from("medical_knowledge").insert({
       source: row.source,
-      category: row.category,
+      category: row.category ?? null,
       content: row.content,
       embedding: vectorLiteral,
-      metadata: row.metadata,
+      metadata: row.metadata ?? {},
     });
     if (error) {
       console.error(error);
       process.exit(1);
     }
-    console.log("OK insert", row.category);
+    console.log("OK insert", row.source, row.category ?? "");
   }
-  console.log("Listo.");
+  console.log("Listo.", rows.length, "fragmentos.");
 }
 
 main().catch((e) => {

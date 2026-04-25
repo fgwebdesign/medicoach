@@ -54,7 +54,8 @@ Las tablas tienen **RLS** activado: el paciente solo accede a sus filas (`patien
 ## Agente y datos
 
 - **Chat:** `POST /api/chat` — `streamText` + tools (`searchMedicalKnowledge`, `getDrugLabel`) + intención heurística con **LangGraph** (`lib/medicoach/agent/graph.ts`).
-- **Ingesta RAG demo:** `npm run ingest:knowledge` (tras `export` de `.env.local` con `OPENAI_API_KEY` y `SUPABASE_SERVICE_ROLE_KEY`).
+- **Vercel AI Gateway (hackathon / Vercel):** si tenés `VERCEL_OIDC_TOKEN` (tras `vercel env pull`) o `AI_GATEWAY_API_KEY`, el chat y los embeddings usan modelos en formato `proveedor/modelo` **sin** `ANTHROPIC_API_KEY` ni `OPENAI_API_KEY`. Ver [AI Gateway](https://vercel.com/docs/ai-gateway) y variables en [`.env.example`](.env.example).
+- **Ingesta RAG demo:** `npm run ingest:knowledge` (necesitás `SUPABASE_SERVICE_ROLE_KEY`; con Gateway no hace falta `OPENAI_API_KEY` local).
 - **Migración:** `supabase/migrations/20260424120000_grant_search_medical_knowledge_service_role.sql` — ejecutá `supabase db push` si la RPC falla con service_role.
 
 ## Próximo cableado

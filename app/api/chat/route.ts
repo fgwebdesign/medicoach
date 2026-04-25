@@ -1,10 +1,11 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import {
   convertToModelMessages,
   stepCountIs,
   streamText,
   type UIMessage,
 } from "ai";
+import { aiGatewayEnabled } from "@/lib/medicoach/ai/env";
+import { resolveChatModel } from "@/lib/medicoach/ai/models";
 import { createMediCoachTools } from "@/lib/medicoach/agent/chat-tools";
 import { runIntentGraph } from "@/lib/medicoach/agent/graph";
 import { MEDICOACH_SYSTEM_PROMPT } from "@/lib/medicoach/agent/prompts";
@@ -42,15 +43,28 @@ function uiMessagesToSnapshot(messages: UIMessage[]): ChatMessageSnapshot[] {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const gateway = aiGatewayEnabled();
+  const openaiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+  const anthropicKey = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+
+  const canChat = gateway || anthropicKey || openaiKey;
+  const canEmbed = gateway || openaiKey;
+
+  if (!canChat) {
     return Response.json(
-      { error: "Falta ANTHROPIC_API_KEY en el servidor." },
+      {
+        error:
+          "Configurá Vercel AI Gateway, ANTHROPIC_API_KEY o OPENAI_API_KEY para el modelo de chat.",
+      },
       { status: 503 },
     );
   }
-  if (!process.env.OPENAI_API_KEY) {
+  if (!canEmbed) {
     return Response.json(
-      { error: "Falta OPENAI_API_KEY (embeddings) en el servidor." },
+      {
+        error:
+          "Hace falta OPENAI_API_KEY para embeddings (o activá AI Gateway, que incluye embeddings).",
+      },
       { status: 503 },
     );
   }
@@ -87,9 +101,6 @@ export async function POST(req: Request) {
   const lastUserText = lastUserTextFromUi(messages);
   const { intent } = await runIntentGraph(lastUserText || "hola");
 
-  const modelId =
-    process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-20250514";
-
   const systemAugmented = `${MEDICOACH_SYSTEM_PROMPT}
 
 Contexto (EE.UU. / FDA): las fuentes de medicamentos pueden ser etiquetas FDA; no sustituyen al médico ni al prospecto local.
@@ -101,7 +112,7 @@ Intención detectada (heurística): "${intent}".`;
   } = await supabase.auth.getUser();
 
   const result = streamText({
-    model: anthropic(modelId),
+    model: resolveChatModel(),
     system: systemAugmented,
     messages: modelMessages,
     tools,

@@ -1,10 +1,10 @@
-import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
+import { resolveEmbeddingModel } from "@/lib/medicoach/ai/models";
 
 /** Embeddings 1536 dim alineados a `medical_knowledge.embedding vector(1536)`. */
 export async function embedQuery(text: string): Promise<number[]> {
   const { embedding } = await embed({
-    model: openai.embedding("text-embedding-3-small"),
+    model: resolveEmbeddingModel(),
     value: text,
     providerOptions: {
       openai: {

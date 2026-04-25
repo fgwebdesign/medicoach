@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@teispace/next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -10,6 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       attribute="class"
       defaultTheme="system"
       enableSystem
+      storage="local"
       disableTransitionOnChange
     >
       {children}
